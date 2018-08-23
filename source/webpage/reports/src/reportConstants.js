@@ -1,6 +1,7 @@
 //--------------------------------—--------------------------------—--------------------------------—//
 //CONSTANTS
-
+//These are the fiscal quarter end dates for bazaarvoice that are used in quarterly reports.
+//If your company has different quarterly end dates, you can modify them here
 const QUARTERDATESORGANIZED = ["1/31", "4/30", "7/31", "10/31"];
 
 //if arranged chronologically by quarter, optimizes loop that assigns it

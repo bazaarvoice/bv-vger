@@ -93,9 +93,7 @@ Check `source/git_etl/git_etl_tag.py`<sup>[Ref](https://platform.github.communit
 
 #### JIRA ETL keeps timed out and unable to update new issue changes. What could happen?
 
-1. JIRA gets an update recently and somehow breaks the JIRA API. If that's the case, contact helpdesk. Example: [ATL-1253](https://bits.bazaarvoice.com/jira/browse/ATL-1253).
-
-2. If only one specfic project is not working, it might be a bug on JIRA side that they cannot handle such query properly and return the value in time. For example, in `source/jira_etl/jira_transform.py` line 35:
+1. If only one specfic project is not working, it might be a bug on JIRA side that they cannot handle such query properly and return the value in time. For example, in `source/jira_etl/jira_transform.py` line 35:
 
 ```python
 issueList = jira_c.search_issues(query, expand='changelog',
