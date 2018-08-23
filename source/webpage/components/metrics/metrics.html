@@ -1,0 +1,265 @@
+    <div class="metrics" ng-controller="metricsController as metrics" id="metricsToastController">
+        <nav class="navbar navbar-inverse navigation" role="navigation" style="margin-bottom: 0px; border: none; background: #62757f;">          
+            <div id="menuContainer" class="container-fluid">
+                <div collapse="navCollapsed" class="collapse navbar-collapse text-padding" aria-expanded="true">
+                    <ul class="nav navbar-nav">
+                      <ul class="breadcrumb list-inline">
+                        <li><a href="/vger/#!/team">Vger</a></li>
+                        <li><a href="/vger/#!/project" ng-click="ctrl.getRootScope()">{{metrics.selectedTeam.name}}</a></li>
+                        <li><a href="">{{metrics.selectedProject.name}}</a></li>
+                        <md-button class="md-icon-button navbar" ng-click="metrics.projectSettingsModal($event)" style="padding: 0px; height: 15px">
+                          <md-icon ng-class="{'on': metrics.editingProject, 'off': !metrics.editingProject}" md-font-set="material-icons project-edit">edit</md-icon>
+                          <md-tooltip style="font-size: 12px;">
+                             Edit project
+                           </md-tooltip>
+                        </md-button>
+                      </ul>
+                    </ul>
+                    <ul class="nav navbar-right">
+                      <ul class="breadcrumb list-inline">
+                          <a id="vger_guide_link" target="_blank">
+                            <i class="material-icons" style="padding-top: 4px">help_outline</i>
+                              <md-tooltip style="font-size: 12px;">
+                                 Help on Confluence Page
+                              </md-tooltip>
+                          </a>
+                      </ul>
+                    </ul>
+                    <ul class="nav navbar-right" style="padding-top: 4px">
+                       <div class = "mainNav clearfix list-inline" style="margin-left: 170px;"> 
+                          <p class = "navicon noSelect" ng-click="metrics.openMenu()">☰</p>
+                       </div>
+                        <div class="hamburgerOpenedModal" ng-click=metrics.openMenu()> </div>                         
+                       <ul class = "mainNavDropDown clearfix overlay" ng-click="metrics.openMenu()">
+                         <li><a id="reports-Link" target="_blank">Quarterly Reports</a></li>
+                         <li><a id="JIRA-Link" target="_blank">View Project in JIRA </a></li>
+                       </ul>
+                    </ul>
+                  </div>
+              </div>
+          </nav>
+          <nav class="navbar navbar-inverse" role="navigation" ng-controller="datePickerController as date" style="margin-bottom: 0px; border: none; background: #bfd4df;">
+            <div class="container-fluid">
+                <div collapse="navCollapsed" class="collapse navbar-collapse" aria-expanded="true">
+                    <ul class="nav navbar-nav" style="margin-right: 10px;">
+                        <form class="navbar-form">
+                            <span class="form-label">From</span>
+                            <div class="input-group short-input mb-2 mr-sm-2 mb-sm-0">
+                                <input type="text" class="form-control" uib-datepicker-popup="{{date.format}}" ng-model="date.dateSince" is-open="date.popup1.opened"
+                                                   datepicker-options="date.dateSinceOptions" ng-required="true" close-text="Close" name="dateSinceField"
+                                                   ng-change="date.dateChange(date.dateSince, 'dateSince')" ng-model-options="{updateOn: 'blur'}"/>
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default" ng-click="date.open1()">
+                                        <i class="glyphicon glyphicon-calendar"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            
+                            <span style="margin-left: 10px;"></span>
+                            
+                            <span class="form-label">To</span>
+                            <div class="input-group short-input mb-2 mr-sm-2 mb-sm-0">
+                                <input type="text" class="form-control" uib-datepicker-popup="{{date.format}}" ng-model="date.dateUntil" is-open="date.popup2.opened"
+                                                   datepicker-options="date.dateUntilOptions" ng-required="true" close-text="Close" name="dateUntilField"
+                                                   ng-change="date.dateChange(date.dateUntil, 'dateUntil')" ng-model-options="{updateOn: 'blur'}"/>
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default" ng-click="date.open2()">
+                                        <i class="glyphicon glyphicon-calendar"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            
+                            <span style="margin-left: 10px;"></span>
+                            
+                            <span class="form-label">Days</span>
+                            <div class="form-group has-feedback" ng-class="{'has-error': date.error}">
+                                <div class="input-group xshort-input">
+                                    <input id="corner" uib-popover="Please enter minimum interval of 14 days." popover-placement="bottom-left" popover-enable="date.error"
+                                           popover-trigger="'outsideClick'" popover-is-open="true" type="text" class="form-control corner" ng-model="date.days"
+                                           ng-change="date.dateChange(date.days, 'days')" select-on-click />
+                                    <span class="glyphicon form-control-feedback" aria-hidden="true" ng-class="{'glyphicon-remove': date.error}"></span>
+                                </div>
+                            </div>
+                        </form>
+                    </ul>
+                    
+                    <ul class="nav navbar-nav"  style="border-left: 1px solid #B0BEC5; margin-left: 10px;" ng-show="metrics.viewMode == 'issue'">
+                        <form class="navbar-form">
+                          <span class="form-label">Work Types</span>
+                          <div class="input-group">
+                              <div uib-popover="Please choose at least 1 category." popover-placement="right" popover-enable="metrics.workTypeError"
+                                   popover-is-open="true" popover-trigger="'outsideClick'" ng-dropdown-multiselect="" options="metrics.workTypes" extra-settings="metrics.dropdownSettings"
+                                   selected-model="metrics.selectedWorkTypesModel" events="dropdownEvents.workTypes" disabled="!metrics.selectedProject"></div>
+                          </div>
+                          <div class="form-group">
+                              <md-button class="md-icon-button navbar" ng-click="metrics.workTypesSettingsModal($event)" style="margin-right: 0px;">
+                                <md-icon ng-class="{'on': metrics.editingWorkTypes, 'off': !metrics.editingWorkTypes}" md-font-set="material-icons">edit</md-icon>
+                                <md-tooltip style="font-size: 12px;">
+                                   Edit work types
+                                 </md-tooltip>
+                              </md-button>
+                          </div>
+                        </form>
+                    </ul>
+                    
+                    <ul class="nav navbar-nav" style="border-left: 1px solid #B0BEC5; height: 56px; margin-left: 10px">
+                        <form class="navbar-form">
+                            <span style="margin-left: 10px;"></span>
+
+                            <div class="form-group">
+                              <md-button class="md-accent md-raised" id="metrics-submit-btn"
+                                ng-disabled="!metrics.selectedProject || date.error || metrics.workTypeError"
+                                ng-click="metrics.filter();">
+                                <span>
+                                    Submit <i class="fa fa-check" aria-hidden="true"></i>
+                                    <md-tooltip style="font-size: 12px; background-color: #d9534f;" ng-show="!metrics.selectedProject">Please select a team first</md-tooltip>
+                                </span>
+                              </md-button>
+                            </div>
+                        </form>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right" style="border-left: 1px solid #B0BEC5;">
+                        <form class="navbar-form">
+                            <div class="btn-group">
+                                <label class="btn btn-default logo" ng-model="metrics.viewMode" uib-btn-radio="'issue'" ng-change='metrics.viewModeChange()'>
+                                    <img class="logo-image" ng-src="assets/images/jira.png">
+                                    <md-tooltip style="font-size: 12px;" appendToBody=true>
+                                        Show JIRA issues
+                                    </md-tooltip>
+                                </label>
+                                <label class="btn btn-default logo" ng-model="metrics.viewMode" uib-btn-radio="'pr'" ng-change='metrics.viewModeChange()'>
+                                    <img class="logo-image" ng-src="assets/images/git_pr.png">
+                                    <md-tooltip style="font-size: 12px;" appendToBody=true>
+                                        Show Github pull requests
+                                    </md-tooltip>
+                                </label>
+                            </div>
+                            <span style="margin-left: 10px;"></span>
+                            <label class="btn btn-default logo" ng-model="metrics.showTags" uib-btn-checkbox ng-click="metrics.toggleGitTags()"
+                                       ng-disabled="!metrics.submitted || !metrics.throughputGraphBuilt || !metrics.predictabilityGraphBuilt
+                                       || !metrics.velocityGraphBuilt || !metrics.leadTimeGraphBuilt || !metrics.hasGitTag">
+                              <md-icon ng-class="{'on': metrics.showTags, 'off': !metrics.showTags}" md-font-set="material-icons">local_offer</md-icon>
+                              <md-tooltip style="font-size: 12px;">
+                                 Show git tags
+                               </md-tooltip>
+                            </label>
+                        </form>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main body -->
+        <div class="metrics">
+
+            <!-- Error message -->
+            <div class="well" ng-show="metrics.serverError">
+                <h3>Unexpected server error</h3>
+                <p>Please report to the <a id="jira_support_project_url">Vger Team</a> if problem persists.</p>
+            </div>
+
+            <!-- Charts -->
+            <div class="metrics" ng-show="metrics.submitted">
+                <div class="col-md-6 quad border-top-left">
+                    <span class="quad" us-spinner="{top:'50%', radius:30, width:8, length: 16}" spinner-on="!metrics.throughputGraphBuilt && !metrics.graphError"></span>
+                    <div class="quad" ng-show="metrics.graphError && !metrics.throughputGraphBuilt">
+                        <h3>Unexpected server error on throughput graph</h3>
+                        <p>Please report to the <a id="jira_support_project_url2">Vger Team</a> if problem persists.</p>
+                    </div>
+                    <div class="google-chart" ng-hide="!metrics.throughputGraphBuilt">
+                        <i class="glyphicon glyphicon-cog header-icon"></i>
+                        <span class="graph-title">
+                            <b>{{ metrics.viewMode == 'issue' ? 'Throughput' : 'PR Throughput' }}</b>&nbsp;
+                            <a id="quadrant_1_link" target="_blank"><i class="material-icons">help_outline</i></a>
+
+                        </span>
+                        <span class="graph-options">
+                            <button type="button" class="btn btn-default" ng-csv="metrics.downloadThroughput()" filename="{{ metrics.fileName }}.csv" style="height:25px; width:25px; padding:0px;">
+                                <md-icon md-font-set="material-icons">file_download</md-icon>
+                            </button>
+                            <button type="button" class="btn btn-default" ng-click="metrics.changePercentileCurve()" style="height:25px; width:25px; padding:0px;">
+                              <md-icon md-font-set="material-icons">show_chart</md-icon>
+                            </button>
+                        </span>
+                        <div class="google-chart" google-chart chart="metrics.throughputGraph" agc-on-select="metrics.hideTPSeries(selectedItem)"></div>
+                    </div>
+                </div>
+                <div class="col-md-6 quad border-top-right">
+                    <span class="quad" us-spinner="{top:'50%', radius:30, width:8, length: 16}" spinner-on="!metrics.velocityGraphBuilt && !metrics.graphError"></span>
+                    <div class="quad" ng-show="metrics.graphError && !metrics.velocityGraphBuilt">
+                        <h3>Unexpected server error on velocity graph</h3>
+                        <p>Please report to the <a id="jira_support_project_url3">Vger Team</a> if problem persists.</p>
+                    </div>
+                    <div class="google-chart" ng-hide="!metrics.velocityGraphBuilt">
+                        <i class="glyphicon glyphicon-signal header-icon"></i>
+                        <span class="graph-title">
+                            <b>{{ metrics.viewMode == 'issue' ? 'Backlog Growth' : 'PR Volume' }}</b>&nbsp;
+                            <a id="quadrant_2_link" target="_blank"><i class="material-icons">help_outline</i></a>
+                        </span>
+                      
+                        <span class="graph-options" ng-show="metrics.viewMode == 'issue'">
+                            Relative Growth
+                            <input ng-model="metrics.velocityRelative" type="checkbox" ng-change="metrics.changeVelocityCurve()">
+                        </span>
+                        <div class="google-chart" google-chart chart="metrics.velocityGraph"></div>
+                    </div>
+                </div>
+                <div class="col-md-6 quad border-bottom-left">
+                    <span class="quad" us-spinner="{top:'50%', radius:30, width:8, length: 16}" spinner-on="!metrics.predictabilityGraphBuilt && !metrics.graphError"></span>
+                    <div class="quad" ng-show="metrics.graphError && !metrics.predictabilityGraphBuilt">
+                        <h3>Unexpected server error on predictability graph</h3>
+                        <p>Please report to the <a id="jira_support_project_url4">Vger Team</a> if problem persists.</p>
+                    </div>
+                    <div class="google-chart" ng-hide="!metrics.predictabilityGraphBuilt">
+                        <div class="graph-header">
+                            <i class="glyphicon glyphicon-record header-icon"></i>
+                            <span class="graph-title">
+                                <b>{{ metrics.viewMode == 'issue' ? 'Throughput Variation' : 'PR Throughput Variation' }}</b>&nbsp;
+                                <a id="quadrant_3_link" target="_blank"><i class="material-icons">help_outline</i></a>
+                            </span>
+                        </div>
+                        <div class="google-chart" google-chart chart="metrics.predictabilityGraph"></div>
+                    </div>
+                </div>
+                <div class="col-md-6 quad border-bottom-right">
+                    <span class="quad" us-spinner="{top:'50%', radius:30, width:8, length: 16}" spinner-on="!metrics.leadTimeGraphBuilt && !metrics.graphError"></span>
+                    <div class="quad" ng-show="metrics.graphError && !metrics.leadTimeGraphBuilt">
+                        <h3>Unexpected server error on lead time graph</h3>
+                        <p>Please report to the <a id="jira_support_project_url5">Vger Team</a> if problem persists.</p>
+                        <p>You can change work state definition <a href ng-click="metrics.workStatesSettingsModal($event)">here</a>.</p>
+                    </div>
+                    <div class="google-chart" ng-hide="!metrics.leadTimeGraphBuilt">
+                        <div class="graph-header">
+                            <i class="glyphicon glyphicon-time header-icon"></i>
+                            <span class="graph-title">
+                                <b>{{ metrics.viewMode == 'issue' ? 'Lead Times' : 'PR Lead Times' }}</b>&nbsp;
+                                <a id="quadrant_4_link" target="_blank"><i class="material-icons">help_outline</i></a>
+                            </span>
+                            <span class="graph-options">
+                                <div class="btn-group" style="height: 25px" ng-show="metrics.viewMode == 'issue'">
+                                  <button type="button" class="btn btn-default" ng-click="metrics.workStatesSettingsModal($event)" style="height: 34px;">
+                                      <md-icon ng-class="{'on': metrics.editingWorkStates, 'off': !metrics.editingWorkStates}" md-font-set="material-icons" style="font-size: 20px;">edit</md-icon>
+                                      <md-tooltip style="font-size: 12px;">Edit work states</md-tooltip>
+                                  </button>
+                                    <label class="btn btn-default" ng-model="metrics.leadTimeMode" uib-btn-radio="'overall'" ng-change='metrics.leadTimeModeChange()'>Overall</label>
+                                    <label class="btn btn-default" ng-model="metrics.leadTimeMode" uib-btn-radio="'detailed'" ng-change='metrics.leadTimeModeChange()'>Detailed</label>
+                                    <div class="btn-group" style="padding-left:10px; height: 25px" ng-show="metrics.leadTimeMode=='detailed'">
+                                        <label class="btn btn-default" ng-model="metrics.leadTimePercentile" uib-btn-radio="'90%'" ng-change='metrics.leadTimePercentileChange()'>90%</label>
+                                        <label class="btn btn-default" ng-model="metrics.leadTimePercentile" uib-btn-radio="'80%'" ng-change='metrics.leadTimePercentileChange()'>80%</label>
+                                        <label class="btn btn-default" ng-model="metrics.leadTimePercentile" uib-btn-radio="'50%'" ng-change='metrics.leadTimePercentileChange()'>50%</label>
+                                    </div>
+                                    <button type="button" class="btn btn-default" ng-model="metrics.leadTimeTrends" uib-btn-checkbox ng-click="metrics.showLeadTimeTrends()" 
+                                            ng-show="metrics.leadTimeMode=='detailed'" style="height:25px; width:25px; padding:0px;">
+                                        <md-icon md-font-set="material-icons">show_chart</md-icon>
+                                    </button>
+                                </div>
+                            </span>
+                        </div>
+                        <div class="google-chart chart" google-chart chart="metrics.leadTimeGraph" agc-on-select="metrics.hideLTSeries(selectedItem)"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

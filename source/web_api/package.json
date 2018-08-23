@@ -1,0 +1,15 @@
+{
+  "name": "web_api",
+  "version": "1.0.0",
+  "description": "",
+  "main": ".",
+  "dependencies": {
+    "serverless-package-python-functions": "0.2.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

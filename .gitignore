@@ -1,0 +1,10 @@
+.DS_Store
+gops-vger.iml
+.idea/
+*.pyc
+.serverless/
+env
+_build
+source/webpage/shared/constants.js
+source/webpage/reports/node_modules
+source/webpage/reports/build

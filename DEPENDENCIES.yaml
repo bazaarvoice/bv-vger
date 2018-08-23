@@ -1,0 +1,11 @@
+Common Name:
+    - Vger
+
+Dependencies:
+# AWS services
+    - AWS/lambda
+    - AWS/redshift
+    - AWS/api-gateway
+    - AWS/s3
+# Other services
+    - Serverless

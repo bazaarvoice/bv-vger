@@ -1,0 +1,94 @@
+<md-dialog aria-label="Edit work types" ng-controller="configurationsController as configs">
+<form ng-cloak>
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Edit Work Types</h2>
+      <md-button class="md-icon-button" ng-click="configs.issueTypeETL()">
+        <i class="material-icons">refresh</i>
+          <md-tooltip style="font-size: 12px;">
+             Trigger ETL for issue type
+          </md-tooltip>
+      </md-button>
+      <span flex></span>
+      <md-button class="md-icon-button" ng-click="cancel()">
+        <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+      </md-button>
+    </div>
+    <md-progress-linear ng-show="configs.loading" class="md-accent" md-mode="indeterminate"></md-progress-linear>
+  </md-toolbar>
+
+  <md-dialog-content>
+    <!-- toast message wrapper -->
+    <md-content class="md-padding md-mini" id="toastContainer">
+      <md-content class="md-padding" layout-xs="column" layout="row">
+        <div flex-xs="" flex-gt-xs="50" layout="row">
+         <section ng-hide="configs.creatingNewType || !configs.jiraWorkTypes" layout="row" layout-sm="column" layout-align="center center" layout-wrap>
+           <md-button class="md-fab md-mini" aria-label="Add new work types" ng-click="configs.createNewType()">
+             <md-icon md-font-set="md">add</md-icon>
+             <md-tooltip style="font-size: 12px;">
+               Create a new work type
+              </md-tooltip>
+           </md-button>
+          </section>
+          
+          <md-card ng-show="configs.creatingNewType"
+                   style="width: 100%; min-width: 210px">
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-headline" style="font-size: 16px;">
+                  <md-input-container class="md-block" flex-gt-sm>
+                    <label>Type Name</label>
+                    <input ng-model="configs.newTypeName">
+                  </md-input-container>
+                </span>
+              </md-card-title-text>
+            </md-card-title>
+            <md-card-actions layout="row" layout-align="end center">
+              <md-button ng-click="configs.cancelNewType()">Cancel</md-button>
+              <md-button ng-disabled="!configs.newTypeName && !configs.newTypeError" ng-click="configs.saveNewType()">Ok</md-button>
+            </md-card-actions>
+          </md-card>
+          
+          <md-card ng-repeat="state in configs.jiraWorkTypes"
+                   ng-class="{'min-card-width': (state.issueTypes.length == 0)}">
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-headline" style="font-size: 16px;">
+                  <strong>{{state.workTypeName}}</strong>
+                  <md-button ng-show="state.issueTypes.length == 0" class="md-icon-button" ng-click="configs.deleteType(state)" style="float: right; padding-top: 3px; margin-right: 0px; padding-right: 0px">
+                    <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Delete card"></md-icon>
+                  </md-button>
+                </span>
+              </md-card-title-text>
+            </md-card-title>
+            <md-card-content class="dnd">
+              <ul dnd-list="state.issueTypes">
+                  <md-button class="md-raised"
+                      ng-repeat="issue in state.issueTypes"
+                      dnd-draggable="issue"
+                      dnd-moved="state.issueTypes.splice($index, 1)"
+                      dnd-effect-allowed="move"
+                      dnd-callback="configs.onDrop(state.issueTypes, $index, targetList, targetIndex);">
+                      {{issue.label}}
+                  </md-button>
+              </ul>
+            </md-card-content>
+          </md-card>
+          
+        </div>
+        
+      </md-content>
+    </md-content>
+  </md-dialog-content>
+
+  <md-dialog-actions layout="row">
+    <span flex></span>
+    <md-button ng-click="cancel()">
+     Cancel
+    </md-button>
+    <md-button ng-click="configs.updateWorkTypes()">
+      Save
+    </md-button>
+  </md-dialog-actions>
+</form>
+</md-dialog>

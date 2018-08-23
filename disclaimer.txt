@@ -1,0 +1,4 @@
+DISCLAIMER
+
+This project was built entirely by bazaarvoice interns over a three year cycle that rotated a single developer and maintainer of the project ever four months. Even though the project is considered to be fully functional and stable, it is not a full representation of bazaarvoice's premium services coding standards as there was more focus on creating an internal application that delivered GIT and JIRA information which project and dev managers could not retrieve directly or in a presentable manner from GIT or JIRA.
+
