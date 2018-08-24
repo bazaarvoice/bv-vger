@@ -24,7 +24,9 @@ bindir=`dirname $0`
 bindir=`cd $bindir; pwd`
 
 # Run private file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-source ../../bv-vger-config/vger-config-setup-private.sh 
+cd ..
+sh bv-vger-config/vger-config-setup-private.sh 
+cd ${bindir}
 
 # Define the target S3 bucket for this environment
 env=$1
@@ -53,4 +55,6 @@ ${bindir}/build-deploy-reports.sh $env
 cd ${bindir}
 
 # Run public file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-source ../../bv-vger-config/vger-config-setup-public.sh 
+cd ../..
+sh bv-vger-config/vger-config-setup-public.sh 
+cd ${bindir}
