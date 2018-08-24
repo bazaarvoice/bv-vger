@@ -1,0 +1,148 @@
+<md-dialog aria-label="Edit project" ng-controller="configurationsController as configs" style="width: 1500px;">
+<form ng-cloak>
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Edit Project</h2>
+      <md-button class="md-icon-button navbar" ng-click="configs.projectETL()" ng-disabled="configs.disableETL">
+          <i class="material-icons {'configs.disableETL': md-light}">refresh</i>
+          <md-tooltip style="font-size: 12px;">
+             Trigger ETL for current project
+           </md-tooltip>
+      </md-button>
+      <span flex></span>
+      <md-button class="md-icon-button" ng-click="cancel()">
+        <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+      </md-button>
+    </div>
+    <md-progress-linear ng-show="configs.loading" class="md-accent" md-mode="indeterminate"></md-progress-linear>
+  </md-toolbar>
+
+  <md-dialog-content>
+    <!-- toast message wrapper -->
+    <md-content class="md-padding md-mini" id="toastContainer">
+        <h3>Project Config</h3>
+        <div class="panel panel-default">
+            <div class="panel-body">
+              <form class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-md-2 control-label project-name">Project Name</label>
+                    <div class="col-md-10">
+                        <md-input-container class="md-block board-name">
+                          <input required="" name="projectName" ng-model="configs.selectedProject.name" aria-label="Project name">
+                          <div ng-messages="addProjectForm.projectName.$error">
+                            <div ng-message="required">This is required.</div>
+                          </div>
+                        </md-input-container>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <h3>
+            Use Issues
+            <md-button class="md-raised md-primary" ng-click="configs.resetJQLToBoard()">
+              Reset JQL to board
+              <md-tooltip style="font-size: 12px;">
+                Click here to reset JQL to current JIRA board configuration
+               </md-tooltip>
+            </md-button>
+        </h3>
+        <div class="panel panel-default">
+            <div class="panel-body">
+              <form class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-md-2 control-label board-name">For Board</label>
+                    <div class="col-md-10">
+                        <md-input-container class="md-block board-name">
+                          <input required="" name="boardName" ng-model="configs.boardName" aria-label="Board name">
+                          <div ng-messages="addProjectForm.boardName.$error">
+                            <div ng-message="required">This is required.</div>
+                          </div>
+                        </md-input-container>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                  <label class="col-md-2 control-label jql">
+                      That Match
+                  </label>
+                  <div class="col-md-10">
+                      <textarea type="text" class="form-control jql" ng-model="configs.issueFilter" aria-label="Jira Query" ng-blur="configs.getIssueFilter(configs.issueFilter)"></textarea>
+                  </div>
+                </div>
+                <div class="form-group" ng-show="configs.showWarning">
+                  <label class="col-md-2 control-label jql"></label>
+                  <div class="col-md-10">
+                      <p style="font-size: 12px; color: red; margin-bottom: 8px;">Warning: The highlighted expressions may not match the issues you want to measure for this project. Unless you are sure they are necessary, you should delete them. Otherwise, project metrics could be wrong.</p>
+                      <p style="font-size: 12px; color: red; margin-bottom: 8px;">Not sure what to do? Send a question to the VGer room in HipChat.</p>
+                      <p style="font-size: 12px;" ng-bind-html="configs.issueFilterHTML | trusted"></p>
+                  </div>
+                </div>
+              </form>
+            </div>
+        </div>
+        
+        <h3>Use Issue Types</h3>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form class="form-horizontal" role="form">
+                  <div class="form-group">
+                        <label class="col-md-2 control-label">All Issue Types</label>
+                        <div class="col-md-10">
+                              <div class="panel panel-default sub-panel">
+                                  <div class="panel-body sub-panel">
+
+
+                                    <form class="form-horizontal" role="form">
+                                        <div class="form-group include-subtasks">
+                                          <label class="col-md-3 control-label include-subtasks">Include Subtasks</label>
+                                          <div class="col-md-8">
+                                              <md-switch md-invert aria-label="switch" ng-model="configs.includeSubtasks"></md-switch>
+                                          </div>
+                                        </div>  
+                                        <div class="form-group">
+                                            <label class="col-md-3 control-label excluded-issue-types">Except For</label>
+                                            <div class="col-md-8">
+                                                <md-chips ng-model="configs.excludedIssueTypes" 
+                                                          readonly="false" md-removable="true" 
+                                                          placeholder="Exclude issue types" ></md-chips>
+                                            </div>
+                                        </div>
+                                    </form>
+                                  </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <h3>Repositories</h3>
+        <div class="panel panel-default">
+            <div class="panel-body">
+              <form class="form-horizontal" role="form">
+                  <div class="form-group">
+                      <label class="col-md-2 control-label repo-names">Repo Names</label>
+                      <div class="col-md-10">
+                            <md-chips ng-model="configs.repos" readonly="false" md-removable="true" placeholder="Add a repository"></md-chips>
+                      </div>
+                  </div>
+              </form>
+            </div>
+          </div>
+    </md-content>
+  </md-dialog-content>
+
+  <md-dialog-actions layout="row">
+    <span flex></span>
+    <md-button ng-click="cancel()">
+     Cancel
+    </md-button>
+    <md-button ng-click="configs.updateProjectSettings()">
+      Save
+    </md-button>
+  </md-dialog-actions>
+</form>
+</md-dialog>

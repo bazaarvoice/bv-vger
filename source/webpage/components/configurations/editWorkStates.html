@@ -1,0 +1,133 @@
+<md-dialog aria-label="Edit work states" ng-controller="configurationsController as configs">
+<form ng-cloak>
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Edit Work States</h2>
+      <span flex></span>
+      <md-button class="md-icon-button" ng-click="cancel()">
+        <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+      </md-button>
+    </div>
+    <md-progress-linear ng-show="configs.loading" class="md-accent" md-mode="indeterminate"></md-progress-linear>
+  </md-toolbar>
+
+  <md-dialog-content>
+    <!-- toast message wrapper -->
+    <md-content class="md-padding md-mini" id="toastContainer">
+      <div>
+        <md-button class="md-raised md-primary" ng-click="configs.resetToBoard()" style="margin-left: 80px;">
+          Reset to board
+          <md-tooltip style="font-size: 12px;">
+            Click here to reset the work states to current Jira board configuration
+           </md-tooltip>
+        </md-button>
+      </div>
+
+      <span style="margin-left: 80px;">
+        Toggle checkbox to include the <span style="background-color: #b3dfdb;">work state in lead time</span> calculation.
+      </span>
+      
+      <md-content class="md-padding md-mini" layout-xs="column" layout="row">
+        <div flex-xs="" flex-gt-xs="50" layout="row"
+             dnd-list="configs.jiraWorkStates" 
+             dnd-allowed-types="['state']" 
+             dnd-drop="callback({targetList: configs.jiraWorkStates, targetIndex: index})">
+             
+             <section ng-hide="configs.creatingNewState || !configs.jiraWorkStates" layout="row" layout-sm="column" layout-align="center center" layout-wrap>
+                <md-button class="md-fab md-mini" aria-label="Add new work states" ng-click="configs.createNewState()">
+                  <md-icon md-font-set="md">add</md-icon>
+                  <md-tooltip style="font-size: 12px;">
+                    Create a new work state
+                   </md-tooltip>
+                </md-button>
+              </section>
+           
+             <md-card ng-show="configs.creatingNewState"
+                      dnd-draggable="state"
+                      dnd-type="'state'"
+                      dnd-callback="configs.onDropStates(configs.jiraWorkStates, $index, targetList, targetIndex);"
+                      id="card"
+                      md-theme="{{ state.selected ? 'selected-card' : 'unselected-card' }}"
+                      style="min-width: 210px">
+               <md-card-title>
+                 <md-card-title-text>
+                   <span class="md-headline" style="font-size: 16px;">
+                     <md-input-container class="md-block" flex-gt-sm>
+                       <label>State Name</label>
+                       <input ng-model="configs.newStateName">
+                     </md-input-container>
+                   </span>
+                 </md-card-title-text>
+               </md-card-title>
+               <md-card-actions layout="row" layout-align="end center">
+                   <md-button ng-click="configs.cancelNewState()">Cancel</md-button>
+                   <md-button ng-disabled="!configs.newStateName && !configs.newStateError" ng-click="configs.saveNewState()">Ok</md-button>
+               </md-card-actions>
+             </md-card>
+           
+            <md-card ng-repeat="state in configs.jiraWorkStates"
+                     dnd-draggable="state"
+                     dnd-type="'state'"
+                     dnd-callback="configs.onDropStates(configs.jiraWorkStates, $index, targetList, targetIndex-2);"
+                     id="card"
+                     ng-class="{'min-card-width': (state.status.length == 0)}"
+                     md-theme="{{ state.selected ? 'selected-card' : 'unselected-card' }}">
+              <md-card-title>
+                <md-card-title-text>
+                  <span class="md-headline" style="font-size: 16px; white-space: nowrap; display: flex;">
+                    <strong style="margin-right: 25px">{{state.name}}</strong>
+                    <md-button ng-show="state.status.length == 0 && state.index != configs.jiraWorkStates.length-1" class="md-icon-button" 
+                               ng-click="configs.deleteState($event, state)" 
+                               style="margin-left: auto; padding-top: 3px; margin-right: 0px; padding-right: 0px;">
+                      <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Delete card"></md-icon>
+                    </md-button>
+                    <md-checkbox ng-model="state.selected"
+                                 ng-hide="state.status.length == 0 || state.index == configs.jiraWorkStates.length-1"
+                                 ng-change="configs.selectLeadTime(state)"
+                                 ng-disabled="(state.index > configs.currentStart) && (state.index < configs.currentEnd) || (state.index == configs.currentStart) && (state.index == configs.currentEnd)"
+                                 aria-label="Select lead time"
+                                 style="margin-left: auto;">
+                    </md-checkbox>
+                    <md-tooltip style="font-size: 12px;"
+                                md-direciton="top"
+                                ng-show="(state.index > configs.currentStart) && (state.index < configs.currentEnd)">
+                    Lead time selection must be continuous.
+                    </md-tooltip>
+                    <md-tooltip style="font-size: 12px;"
+                                md-direciton="top"
+                                ng-show="(state.index == configs.currentStart) && (state.index == configs.currentEnd)">
+                    Must have at least one selection.
+                    </md-tooltip>
+                  </span>
+                </md-card-title-text>
+              </md-card-title>
+              <md-card-content class="dnd">
+                <ul dnd-list="items"
+                    dnd-allowed-types="['item']"
+                    dnd-drop="callback({targetList: state.status, targetIndex: index})">
+                    <md-button class="md-raised"
+                        ng-repeat="elem in state.status"
+                        dnd-draggable="null"
+                        dnd-type="'item'"
+                        dnd-callback="configs.onDrop(state.status, $index, targetList, targetIndex);">
+                        {{elem.label}}
+                    </md-button>
+                </ul>
+              </md-card-content>
+            </md-card>
+        </div>
+      </md-content>
+    </md-content>
+  </md-dialog-content>
+
+  <md-dialog-actions layout="row">
+    <span flex></span>
+    <md-button ng-click="cancel()">
+     Cancel
+    </md-button>
+    <md-button ng-click="configs.updateWorkStates()">
+      Save
+    </md-button>
+  </md-dialog-actions>
+</form>
+</md-dialog>

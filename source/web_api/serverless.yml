@@ -1,0 +1,676 @@
+service: vger-serverless
+provider:
+  name: aws
+  runtime: python2.7
+  stage: ${opt:stage}
+  region: us-east-1
+  role: #ROLE
+  stackTags:
+    # TEAM : TEAM EMAIL
+  environment:
+    DATABASE_NAME: ${file(./env/env.${self:provider.stage}.yml):DATABASE_NAME}
+    REDSHIFT_PORT: ${file(./env/env.${self:provider.stage}.yml):REDSHIFT_PORT}
+    AWS_RS_USER: ${file(./env/env.${self:provider.stage}.yml):AWS_RS_USER}
+    AWS_RS_PASS: ${file(./env/env.${self:provider.stage}.yml):AWS_RS_PASS}
+    CLUSTER_ENDPOINT: ${file(./env/env.${self:provider.stage}.yml):CLUSTER_ENDPOINT}
+    JH_JIRAURL: ${file(./env/env.${self:provider.stage}.yml):JH_JIRAURL}
+    JH_USER: ${file(./env/env.${self:provider.stage}.yml):JH_USER}
+    JH_PASS: ${file(./env/env.${self:provider.stage}.yml):JH_PASS}
+    GIT_API_USER: ${file(./env/env.${self:provider.stage}.yml):GIT_API_USER}
+    GIT_API_KEY: ${file(./env/env.${self:provider.stage}.yml):GIT_API_KEY}
+    ENV: ${file(./env/env.${self:provider.stage}.yml):ENV}
+package:
+  individually: true
+
+plugins:
+  - serverless-package-python-functions  
+custom:
+  pkgPyFuncs: 
+    buildDir: _build
+    requirementsFile: 'requirements.txt'
+    useDocker: true
+    cleanup: true
+
+# ------------------------------------------------------------------------------
+# Team & project functions
+# ------------------------------------------------------------------------------
+functions:
+
+  vger-sls-team:
+    name: vger-sls-team-${self:provider.stage}
+    handler: team.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./team
+        - ./utils/constants        
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-team.name}.zip
+    events:
+      - http:
+          path: /team
+          method: get
+
+  vger-sls-create-team:
+    name: vger-sls-create-team-${self:provider.stage}
+    handler: create_team.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./create_team
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-create-team.name}.zip
+    events:
+      - http:
+          path: /team
+          method: post
+
+  vger-sls-create-project:
+    name: vger-sls-create-project-${self:provider.stage}
+    handler: create_project.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./create_project
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-create-project.name}.zip
+    events:
+      - http:
+          path: /team/{id}/project
+          method: post
+
+  vger-sls-team-project:
+    name: vger-sls-team-project-${self:provider.stage}
+    handler: team_project.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./team_project
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-team-project.name}.zip
+    events:
+      - http:
+          path: /team/{id}/project
+          method: get
+
+  vger-sls-project-issues:
+    name: vger-sls-project-issues-${self:provider.stage}
+    handler: project_issues.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./project_issues
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-project-issues.name}.zip
+    events:
+      - http:
+          path: /project/{id}/issues
+          method: get
+          
+  vger-sls-update-issues:
+    name: vger-sls-update-issues-${self:provider.stage}
+    handler: update_issues.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./update_issues
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-update-issues.name}.zip
+    events:
+      - http:
+          path: /project/{id}/issues
+          method: put
+          cors: true
+
+  vger-sls-project-work-states:
+    name: vger-sls-project-work-states-${self:provider.stage}
+    handler: project_work_states.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./project_work_states
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-project-work-states.name}.zip
+    events:
+      - http:
+          path: /project/{id}/workstates
+          method: get
+
+  vger-sls-board-work-states:
+    name: vger-sls-board-work-states-${self:provider.stage}
+    handler: board_work_states.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./board_work_states
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-board-work-states.name}.zip
+    events:
+      - http:
+          path: /project/{id}/boardworkstates
+          method: get
+
+  vger-sls-update-work-states:
+    name: vger-sls-update-work-states-${self:provider.stage}
+    handler: update_work_states.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./update_work_states
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-update-work-states.name}.zip
+    events:
+      - http:
+          path: /project/{id}/workstates
+          method: put
+          cors: true
+
+  vger-sls-project-work-types:
+    name: vger-sls-project-work-types-${self:provider.stage}
+    handler: project_work_types.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./project_work_types
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-project-work-types.name}.zip
+    events:
+      - http:
+          path: /project/{id}/worktypes
+          method: get
+
+  vger-sls-update-work-types:
+    name: vger-sls-update-work-types-${self:provider.stage}
+    handler: update_work_types.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./update_work_types
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-update-work-types.name}.zip
+    events:
+      - http:
+          path: /project/{id}/worktypes
+          method: put
+          cors: true
+
+# ------------------------------------------------------------------------------
+# Jira statistics functions
+# ------------------------------------------------------------------------------
+  vger-sls-jira-backlog-history:
+    name: vger-sls-jira-backlog-history-${self:provider.stage}
+    handler: jira_backlog_history.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_backlog_history
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/work_type_parser
+        - ./utils/jira_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-backlog-history.name}.zip
+    events:
+      - http:
+          path: /project/{id}/backlog
+          method: get
+
+  vger-sls-jira-leadtime:
+    name: vger-sls-jira-leadtime-${self:provider.stage}
+    handler: jira_leadtime.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_leadtime
+        - ./utils/percentile
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/work_type_parser
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-leadtime.name}.zip
+    events:
+      - http:
+          path: /project/{id}/leadtime
+          method: get
+
+  vger-sls-jira-leadtime-quarterly:
+    name: vger-sls-jira-leadtime-quarterly-${self:provider.stage}
+    handler: jira_leadtime_quarterly.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_leadtime_quarterly
+        - ./utils/percentile
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/work_type_parser
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-leadtime-quarterly.name}.zip
+    events:
+      - http:
+          path: /project/{id}/leadtime/quarterly
+          method: get
+
+  vger-sls-jira-throughput-statistics:
+    name: vger-sls-jira-throughput-statistics-${self:provider.stage}
+    handler: jira_throughput_statistics.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_throughput_statistics
+        - ./utils/percentile
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/work_type_parser
+        - ./utils/jira_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-throughput-statistics.name}.zip
+    events:
+      - http:
+          path: /project/{id}/throughput/statistics
+          method: get
+
+  vger-sls-jira-throughput-history:
+    name: vger-sls-jira-throughput-history-${self:provider.stage}
+    handler: jira_throughput_history.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_throughput_history
+        - ./utils/percentile
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/work_type_parser
+        - ./utils/jira_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-throughput-history.name}.zip
+    events:
+      - http:
+          path: /project/{id}/throughput/history
+          method: get
+
+  vger-sls-jira-throughput-quarterly-history:
+    name: vger-sls-jira-throughput-quarterly-history-${self:provider.stage}
+    handler: jira_throughput_quarterly_history.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_throughput_quarterly_history
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/percentile
+        - ./utils/work_type_parser
+        - ./utils/jira_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-throughput-quarterly-history.name}.zip
+    events:
+      - http:
+          path: /project/{id}/throughput/quarterly/history
+          method: get
+
+  vger-sls-jira-throughput-predictability:
+    name: vger-sls-jira-throughput-predictability-${self:provider.stage}
+    handler: jira_throughput_predictability.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_throughput_predictability
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/work_type_parser
+        - ./utils/jira_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-throughput-predictability.name}.zip
+    events:
+      - http:
+          path: /project/{id}/throughput/predictability
+          method: get
+          
+# ------------------------------------------------------------------------------
+# jira issue filter 
+# ------------------------------------------------------------------------------
+
+  vger-sls-issues-filter:
+    name: vger-sls-issues-filter-${self:provider.stage}
+    handler: issues_filter.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./issues_filter
+        - ./utils/jql_parser
+        - ./utils/query_parameters
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-issues-filter.name}.zip
+    events:
+      - http:
+          path: /issues/filter
+          method: get
+
+# ------------------------------------------------------------------------------
+# Git statistics functions
+# ------------------------------------------------------------------------------
+  vger-sls-git-repos:
+    name: vger-sls-git-repos-${self:provider.stage}
+    handler: git_repos.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_repos
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-repos.name}.zip
+    events:
+      - http:
+          path: /project/{id}/repos
+          method: get
+          
+  vger-sls-update-repos:
+    name: vger-sls-update-repos-${self:provider.stage}
+    handler: update_repos.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./update_repos
+        - ./utils/redshift_connection
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-update-repos.name}.zip
+    events:
+      - http:
+          path: /project/{id}/repos
+          method: put
+          cors: true
+          
+  vger-sls-git-tags:
+    name: vger-sls-git-tags-${opt:stage}
+    handler: git_tags.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_tags
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-tags.name}.zip
+    events:
+      - http:
+          path: /project/{id}/tags
+          method: get
+
+  vger-sls-git-pr-throughput-history:
+    name: vger-sls-git-pr-throughput-history-${opt:stage}
+    handler: git_pr_throughput_history.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_pr_throughput_history
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/percentile
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-pr-throughput-history.name}.zip
+    events:
+      - http:
+          path: /project/{id}/prs/throughput/history
+          method: get
+
+  vger-sls-git-pr-throughput-statistics:
+    name: vger-sls-git-pr-throughput-statistics-${self:provider.stage}
+    handler: git_pr_throughput_statistics.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_pr_throughput_statistics
+        - ./utils/percentile
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-pr-throughput-statistics.name}.zip
+    events:
+      - http:
+          path: /project/{id}/prs/throughput/statistics
+          method: get
+
+  vger-sls-git-pr-throughput-predictability:
+    name: vger-sls-git-pr-throughput-predictability-${self:provider.stage}
+    handler: git_pr_throughput_predictability.handler
+    timeout: 300
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_pr_throughput_predictability
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-pr-throughput-predictability.name}.zip
+    events:
+      - http:
+          path: /project/{id}/prs/throughput/predictability
+          method: get
+
+  vger-sls-git-pr-leadtime:
+    name: vger-sls-git-pr-leadtime-${self:provider.stage}
+    handler: git_pr_leadtime.handler
+    timeout: 300
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_pr_leadtime
+        - ./utils/percentile
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-pr-leadtime.name}.zip
+    events:
+      - http:
+          path: /project/{id}/prs/leadtime
+          method: get
+
+  vger-sls-git-pr-backlog-history:
+    name: vger-sls-git-pr-backlog-history-${self:provider.stage}
+    handler: git_pr_backlog_history.handler
+    timeout: 30
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_pr_backlog_history
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-pr-backlog-history.name}.zip
+    events:
+      - http:
+          path: /project/{id}/prs/backlog
+          method: get
+
+  vger-sls-jira-board-jql:
+    name: vger-sls-jira-board-jql-${self:provider.stage}
+    handler: jira_board_jql.handler
+    timeout: 30
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_board_jql
+        - ./utils/query_parameters
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-board-jql.name}.zip
+    events:
+      - http:
+          path: /board
+          method: get
+
+  vger-sls-jira-board-id:
+    name: vger-sls-jira-board-id-${self:provider.stage}
+    handler: jira_board_id.handler
+    timeout: 30
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./jira_board_id
+        - ./utils/query_parameters
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-board-id.name}.zip
+    events:
+      - http:
+          path: /board/id
+          method: get
+
+  vger-sls-jira-project-etl:
+    name: vger-sls-jira-project-etl-${self:provider.stage}
+    handler: etl_trigger.handler
+    timeout: 30
+    memorySize: 1024
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./etl_trigger
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-project-etl.name}.zip
+    events:
+      - http:
+          path: /project/{id}/etl
+          method: post
+
+  vger-sls-jira-etl-status:
+    name: vger-sls-jira-etl-status-${self:provider.stage}
+    handler: etl_status.handler
+    timeout: 30
+    memorySize: 128
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./etl_status
+        - ./utils/query_parameters
+        - ./utils/redshift_connection
+        - ./utils/time_interval_calculator
+        - ./utils/lambda_preprocessor
+        - ./utils/response_helper
+        - ./utils/constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-jira-etl-status.name}.zip
+    events:
+      - http:
+          path: /project/{id}/etl/status
+          method: get

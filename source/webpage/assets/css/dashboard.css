@@ -1,0 +1,359 @@
+/*
+ * Base structure
+ */
+
+html, body {
+  /*padding-top: 50px;*/
+  height: 100%;
+}
+
+.nav a,.nav a:hover,.nav a:visited,.nav a:active,.nav a:link{
+  text-decoration: none;
+  color: white;
+}
+
+.noSelect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+:focus {
+    outline: none !important;
+}
+
+/*
+ * Give full height to parent divs of google chart to preserve area while loading
+ */
+.templates {
+  height: 100%
+}
+
+.metrics {
+  height: 100%;
+}
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+
+.form-label {
+  /*color: #9d9d9d;*/
+  /*color: white;*/
+  color: black;
+}
+
+/* Hide default margin for full chart body screen */
+.navbar {
+  /*margin-bottom: 0;*/
+  border-radius: 0px;
+}
+
+/*
+* Hamburger drop-down menu
+*/
+
+.mainNav{
+  float:right!important;
+ }
+.navicon{
+  font-size: 24px;
+  margin: 0px;
+  line-height: 0;
+  color: white;
+  padding-top: 10px;
+  padding-left: 15px;
+ }
+.mainNavDropDown{
+  color: white;
+  font-size: inherit;
+  list-style: none;
+  padding-right: 20px;
+  text-align: center;
+  display: none;
+  z-index: 100;
+ }
+.mainNavDropDown li{
+  font-size: inherit;
+  border-bottom: 1px solid black;
+ }
+.mainNavDropDown li:last-child{
+  border-bottom: none;
+ }
+.mainNavDropDown li:hover{
+  background: black;
+ }
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+
+
+/*
+ * Charts
+ */
+.border-top-left {
+  border-right: solid #E0E0E0;
+  border-bottom: solid #E0E0E0;
+  position:relative;
+}
+
+.border-top-right {
+  border-bottom: solid #E0E0E0;
+  position:relative;
+}
+
+.border-bottom-left {
+  border-right: solid #E0E0E0;
+  position:relative;
+}
+
+.border-bottom-right {
+  position:relative;
+}
+
+.google-chart {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  margin-right: 5px;
+  margin-left: 5px;
+  width: 100%; 
+  height: 90%;
+}
+
+.quad {
+  height: 50%
+}
+
+.graph-header{
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.graph-title{
+  font-size: 20px;
+}
+
+.graph-options{
+  float: right;
+  margin-right: 10px;
+}
+
+.header-icon {
+  font-weight: bold;
+  font-size: 18px;
+}
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.placeholders h4 {
+  margin-bottom: 0;
+}
+.placeholder {
+  margin-bottom: 20px;
+}
+.placeholder img {
+  display: inline-block;
+  border-radius: 50%;
+}
+
+div .uib-datepicker{
+  color: #000;
+  background-color: #eeeeee;
+}
+
+.uib-day .btn[disabled] {
+  filter: alpha(opacity=90);
+  background-color: #690000;
+  color: #777;
+}
+
+
+/* Error messages */
+.popover {
+  background-color: #d9534f;
+  border-color: #d43f3a;
+  width: 180px;
+  color: white;
+}
+
+.popover.right > .arrow:after {
+  border-right-color: #d9534f;
+}
+.popover.bottom > .arrow:after {
+  border-bottom-color: #d9534f;
+}
+
+/*.popover-content.right .arrow:after {
+	border-right-color: #d9534f;
+}*/
+
+
+/* Formatting forms */
+.navbar-form .short-input {
+  width: 150px;
+}
+
+.navbar-form .xshort-input {
+  width: 80px;
+}
+
+/* Using has-feedback with ng-class thinks the elements are first-child, removing the right corner roundings */
+input#corner{
+  border-top-right-radius: 4px; 
+  border-bottom-right-radius: 4px;
+}
+
+
+/* Configuration */
+.navbar-form-config {
+    padding-right: 40px;
+}
+
+.navbar.navbar-inverse.navigation {
+    min-height: 30px;
+}
+
+#metrics-submit-btn {
+  /*background-color: rgb(63,81,181);*/
+  /*color: rgba(255,255,255,0.87);*/
+  font-size: 14px; 
+  margin: 0px 6px 0px 6px; 
+  text-transform: none;
+}
+
+.breadcrumb {
+    /*background: #222; */
+    /*background: #002984;*/
+    background: #62757f !important;
+    margin: 0px;
+}
+.breadcrumb li {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+.breadcrumb > li + li:before {
+    font-size: 13px;
+    /*color: #ccc;*/
+    /*color: black;*/
+    color: white;
+    content: "▶ ";
+    /*content: "> ";*/
+    padding: 0 5px;
+}
+.breadcrumb a {
+    /*color: #9d9d9d;*/
+    color: white;
+}
+
+.breadcrumb a:hover {
+    text-decoration: none;
+}
+
+.breadcrumb.list-inline {
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+.overlay{
+  position: absolute;
+  z-index: 100;
+  background: #2134d4ed;
+}
+.navbar .breadcrumb md-icon{
+    /*color: #9d9d9d; */
+    color: white;
+    font-size: 20px;
+}
+
+.navbar md-icon:hover{
+    color: black;
+}
+
+md-icon.on {
+    color: black;
+}
+
+md-icon.off {
+    color: rgba(0,0,0,0.54);
+}
+
+md-icon.project-edit.on {
+    color: black;
+}
+
+md-icon.project-edit.off {
+    color: white;
+}
+
+.logo {
+    height: 4rem;
+    width: 5.5rem;
+}
+
+.logo-image {
+    height: 100%;
+    width: 100%;
+}
+
+.material-icons.md-light {
+  color: white; }
+
+.material-icons.md-dark {
+  color: black; }
+
+
+.hamburgerOpenedModal {
+  display:    none;
+  position:   fixed;
+  z-index:    10;
+  cursor: initial;
+  top:        0;
+  left:       0;
+  height:     100%;
+  width:      100%;
+  background: rgba( 0, 0, 0, 0) 
+              50% 50% 
+              no-repeat;
+}
+
+body.hamburgerOpened .hamburgerOpenedModal .hamburgerOpenedText{
+  overflow: hidden;   
+}
+
+body.hamburgerOpened .hamburgerOpenedModal,.hamburgerOpenedText {
+  display: block;
+}

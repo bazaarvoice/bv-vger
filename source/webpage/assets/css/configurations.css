@@ -1,0 +1,138 @@
+/* Drag and Drop */
+/**
+ * The dnd-list should always have a min-height,
+ * otherwise you can't drop into it once it's empty
+ */
+.dnd ul[dnd-list] {
+    min-height: 200px;
+}
+
+/**
+ * An element with .dndPlaceholder class will be
+ * added to the dnd-list while the user is dragging
+ * over it.
+ */
+.dnd ul[dnd-list] .dndPlaceholder {
+    background-color: #ddd;
+    display: block;
+    min-height: 42px;
+}
+
+.dnd ul[dnd-list] li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    display: block;
+    margin-bottom: -1px;
+    padding: 10px 15px;
+}
+
+/* Material Design */
+
+/* disable tab animation */
+md-tabs.md-no-animation md-tab-content {
+    transition: none;
+}
+
+md-tabs.md-no-animation md-ink-bar {
+    transition: none;
+}
+
+.md-tab {
+    text-transform: none;
+}
+
+/* allows line break in tooltips */
+md-tooltip .md-content {
+    height: auto;
+}
+
+/* Lead time legend made with disabled checkbox */
+md-checkbox.legend .md-container {
+    background-color: rgb(178,223,219);
+}
+
+md-input-container {
+    /* margin-bottom: 0px; */
+    margin-top: 0px;
+}
+
+md-input-container.md-input {
+    margin-top: 0px;
+}
+md-input-container.md-input.board-name {
+    margin-bottom: 0px;
+}
+
+md-chips-wrap {
+    margin-bottom: 5px;
+}
+
+/* Remove default ALL CAP on buttons */
+.md-button {
+    text-transform: none;
+}
+
+/* Edit project dialog */
+.control-label {
+    text-align: right;
+}
+
+.control-label.board-name {
+    margin-top: 4px;
+}
+.control-label.project-keys {
+    margin-top: 10px;
+}
+.control-label.jql {
+    margin-top: 16px;
+}
+.control-label.include-subtasks {
+    margin-top: 11px;
+}
+.control-label.excluded-issue-types {
+    margin-top: 4px;
+}
+.control-label.repo-names {
+    margin-top: 6px;
+}
+
+.form-control.jql {
+    margin-top: 16px;
+}
+.form-group .include-subtasks {
+    margin-bottom: 0px;
+}
+
+.sub-panel {
+    padding: 0px;
+    margin: 0px;
+}
+
+/* Team & Project page */
+.team-project {
+    height: 100%;
+    /*background: #ECEFF1;*/
+    background: #E1E2E1;
+}
+
+md-list {
+    padding: 0px;
+    overflow-y: auto;
+    max-height: 800px;
+    border-right: 1px solid rgba(0,0,0,0.12);
+    border-left: 1px solid rgba(0,0,0,0.12);
+    min-width: 300px;
+}
+
+md-card.min-card-width {
+    min-width: 240px;
+}
+
+.material-icons {
+  vertical-align: middle !important;
+  padding-bottom: 3px;
+}

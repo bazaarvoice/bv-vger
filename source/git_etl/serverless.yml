@@ -1,0 +1,68 @@
+service: vger-git-etl
+provider:
+  name: aws
+  runtime: python2.7
+  stage: ${opt:stage}
+  region: us-east-1
+  role: #ROLE GOES HERE
+  stackTags:
+    #TEAM : TEAM EMAIL
+  environment:
+    DATABASE_NAME: ${file(./env/env.${self:provider.stage}.yml):DATABASE_NAME}
+    REDSHIFT_PORT: ${file(./env/env.${self:provider.stage}.yml):REDSHIFT_PORT}
+    AWS_RS_USER: ${file(./env/env.${self:provider.stage}.yml):AWS_RS_USER}
+    AWS_RS_PASS: ${file(./env/env.${self:provider.stage}.yml):AWS_RS_PASS}
+    CLUSTER_ENDPOINT: ${file(./env/env.${self:provider.stage}.yml):CLUSTER_ENDPOINT}
+    JH_JIRAURL: ${file(./env/env.${self:provider.stage}.yml):JH_JIRAURL}
+    JH_USER: ${file(./env/env.${self:provider.stage}.yml):JH_USER}
+    JH_PASS: ${file(./env/env.${self:provider.stage}.yml):JH_PASS}
+    GIT_API_USER: ${file(./env/env.${self:provider.stage}.yml):GIT_API_USER}
+    GIT_API_KEY: ${file(./env/env.${self:provider.stage}.yml):GIT_API_KEY}
+    ENV: ${file(./env/env.${self:provider.stage}.yml):ENV}
+package:
+  individually: true
+
+plugins:
+  - serverless-package-python-functions  
+custom:
+  pkgPyFuncs: 
+    buildDir: _build
+    requirementsFile: 'requirements.txt'
+    useDocker: true
+    cleanup: true
+
+functions:
+  vger-sls-git-etl-scheduler:
+    name: vger-sls-git-etl-scheduler-${self:provider.stage}
+    handler: git_etl_scheduler.handler
+    timeout: 300
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_etl_scheduler
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-etl-scheduler.name}.zip
+
+  vger-sls-git-etl-pr:
+    name: vger-sls-git-etl-pr-${self:provider.stage}
+    handler: git_etl_pr.handler
+    timeout: 300
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_etl_pr
+        - ./constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-etl-pr.name}.zip
+
+  vger-sls-git-etl-tag:
+    name: vger-sls-git-etl-tag-${self:provider.stage}
+    handler: git_etl_tag.handler
+    timeout: 300
+    package:
+      exclude:
+        - "./**"
+      include:
+        - ./git_etl_tag
+        - ./constants
+      artifact: ${self:custom.pkgPyFuncs.buildDir}/${self:functions.vger-sls-git-etl-tag.name}.zip

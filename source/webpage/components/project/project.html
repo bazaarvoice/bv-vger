@@ -1,0 +1,129 @@
+<div class="team-project">  
+  <div ng-controller="projectController as ctrl">
+    <nav class="navbar navbar-inverse navigation" role="navigation" style="margin-bottom: 0px; border: none; background: #62757f;">
+        <div class="container-fluid">
+            <div collapse="navCollapsed" class="collapse navbar-collapse" aria-expanded="true">
+                <ul class="nav navbar-nav">
+                  <ul class="breadcrumb list-inline">
+                    <li><a href="/vger/#!/team">Vger</a></li>
+                    <li><a href="/vger/#!/project">{{selectedTeamName}}</a></li>
+                  </ul>
+                </ul>
+                <ul class="nav navbar-right">
+                  <ul class="breadcrumb list-inline">
+                      <a id="vger_guide_link" target="_blank">
+                        <i class="material-icons" style="padding-top: 4px">help_outline</i>
+                      </a>
+                  </ul>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div layout="row" layout-align="center start">
+      <div style="padding-top: 50px">
+        <div class="panel panel-default" style="width: 900px; height: 100%; background: #F5F5F6;">
+          <div layout="row" layout-align="center start">
+            
+            <div style="padding-top: 50px; padding-bottom: 50px;">
+        
+                <md-list ng-cloak>
+                  <md-toolbar md-scroll-shrink="">
+                    <div class="md-toolbar-tools">Select Project</div>
+                  </md-toolbar>
+                  
+                  <md-list-item ng-click="ctrl.getMetrics(project.id, project.name)" 
+                                ng-repeat="project in ctrl.projects">
+                    <p> {{ project.name }} </p>
+                    <md-divider></md-divider>
+                  </md-list-item>
+                  
+                </md-list>
+
+            </div>
+            <div ng-controller="dialogController as dialog" style="padding-left: 100px; padding-top: 50px; padding-bottom: 50px;">
+              <md-button style="font-size: 14px; margin: 0px 6px 0px 6px;" class="md-primary md-raised" ng-click="dialog.addProject($event)">
+                 Add Project...
+               </md-button>
+                <a id="add_project_link" target="_blank">
+                    <i class="material-icons" style="padding-top: 4px">help_outline</i>
+                </a>
+           </div>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+ <!-- start of material design dialog -->
+ <script type="text/ng-template" id="addProject.tmpl.html">
+   <md-dialog aria-label="Add Project" flex="50">
+     <form ng-cloak name="addProjectForm">
+       
+       <md-toolbar>
+         <div class="md-toolbar-tools">
+           <h2>Add Project</h2>
+           <span flex></span>
+           <md-button class="md-icon-button" ng-click="cancel()">
+             <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+           </md-button>
+         </div>
+         <md-progress-linear ng-show="loading" class="md-accent" md-mode="indeterminate"></md-progress-linear>
+       </md-toolbar>
+
+       <md-dialog-content>
+         <div class="md-dialog-content">
+           
+             <section layout="row" layout-sm="column" layout-align="center center" style="margin-bottom: 30px">
+               <md-button class="md-accent md-raised" ng-show="validationProjectErrorMessage" style="text-transform: none;">
+                 [Error] {{validationProjectErrorMessage}}
+               </md-button>
+               <md-button class="md-primary md-raised" ng-show="validationProjectSuccessMessage" style="text-transform: none;">
+                 {{validationProjectSuccessMessage}}
+               </md-button>
+             </section>
+           
+             <md-input-container class="md-block">
+               <label>Team Name</label>
+               <input disabled placeholder="teamName" name="teamName" ng-model="teamName">
+             </md-input-container>
+             
+             <md-input-container class="md-block">
+               <label>Project Name</label>
+               <input required="" name="projectName" ng-model="projectName">
+               <div ng-messages="addProjectForm.projectName.$error">
+                 <div ng-message="required">This is required.</div>
+               </div>
+             </md-input-container>
+             
+             <md-input-container class="md-block">
+               <label>Jira Board Name</label>
+               <input required="" name="boardName" ng-model="boardName">
+               <div ng-messages="addProjectForm.boardName.$error">
+                 <div ng-message="required">This is required.</div>
+               </div>
+             </md-input-container>
+
+             <md-input-container class="md-block">
+               <label>Git Repository Names</label>
+               <input name="repoNames" ng-model="repoNames" ng-pattern="/^[a-zA-Z0-9,-]*$/">
+               <div ng-messages="addProjectForm.repoNames.$error" multiple="" md-auto-hide="false">
+                 <div ng-message="pattern"> ex) bv-vger,jolt,emoDB (comma separated values)</div>
+               </div>
+             </md-input-container>
+         </div>
+       </md-dialog-content>
+
+       <md-dialog-actions layout="row">
+         <span flex></span>
+         <md-button class="md-primary md-raised" ng-disabled="addProjectForm.$invalid" type="submit" ng-click="addProject()">
+           Submit
+         </md-button>
+       </md-dialog-actions>
+     </form>
+     </md-dialog>
+ </script>
+ <!-- end of material design dialog -->

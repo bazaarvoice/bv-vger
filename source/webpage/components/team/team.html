@@ -1,0 +1,138 @@
+<div class="team-project">
+  <div ng-controller="teamController as ctrl">
+    <nav class="navbar navbar-inverse navigation" role="navigation"  style="margin-bottom: 0px; border: none; background: #62757f;">
+        <div class="container-fluid">
+            <div collapse="navCollapsed" class="collapse navbar-collapse" aria-expanded="true">
+                <ul class="nav navbar-nav" ng-controller="teamController as ctrl">
+                  <ul class="breadcrumb list-inline">
+                    <li><a href="/vger/#!/team">Vger</a></li>
+                  </ul>
+                </ul>
+                <ul class="nav navbar-right">
+                  <ul class="breadcrumb list-inline">
+                    <a id="vger_guide_link" target="_blank">
+                      <i class="material-icons" style="padding-top: 4px">help_outline</i>
+                    </a>
+                  </ul>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div layout="row" layout-align="center start">
+      <div style="padding-top: 50px">
+        <div class="panel panel-default" style="width: 900px; height: 100%; background: #F5F5F6;">
+          <div layout="row" layout-align="center start">
+            
+              <div style="padding-top: 50px; padding-bottom: 50px;">
+                  <!-- <div class="panel-body"> -->
+                    
+                    <md-list ng-cloak>
+                      <md-toolbar md-scroll-shrink="">
+                        <div class="md-toolbar-tools">Select Team</div>
+                      </md-toolbar>
+                      
+                      <md-list-item ng-click="ctrl.getProjectList(team.id, team.name)" 
+                                    ng-repeat="team in ctrl.teams">
+                        <p> {{ team.name }} </p>
+                        <md-divider></md-divider>
+                      </md-list-item>
+                      
+                    </md-list>
+                    
+                  <!-- </div> -->
+              </div>
+
+              <div ng-controller="dialogController as dialog" style="padding-left: 100px; padding-top: 50px; padding-bottom: 50px;">
+                <md-button style="font-size: 14px; margin: 0px 6px 0px 6px;" class="md-primary md-raised" ng-click="dialog.addTeam($event)">
+                  Add Team...
+                </md-button>
+                <a id="add_team_link" target="_blank">
+                    <i class="material-icons" style="padding-top: 4px">help_outline</i>
+                </a>
+              </div>
+              
+            </div>
+         </div>
+       </div>
+    </div>
+    
+  </div>
+</div>
+
+<datalist id="teamNamesList">
+<!-- populated by teamcontroller -->
+</datalist>
+
+<!-- start of material design dialog -->
+<script type="text/ng-template" id="addTeam.tmpl.html">
+  <md-dialog aria-label="Add Team" flex="50">
+    <form ng-cloak name="addTeamForm">
+
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Add Team</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="cancel()">
+              <md-icon md-svg-src="img/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+        <md-progress-linear ng-show="loading" class="md-accent" md-mode="indeterminate"></md-progress-linear>
+      </md-toolbar>
+
+      <md-dialog-content>
+        <div class="md-dialog-content">
+
+          <section layout="row" layout-sm="column" layout-align="center center" style="margin-bottom: 30px">
+            <md-button class="md-accent md-raised" ng-show="validationTeamErrorMessage" style="text-transform: none;">
+            [Error] {{validationTeamErrorMessage}}
+            </md-button>
+            <md-button class="md-primary md-raised" ng-show="validationTeamSuccessMessage" style="text-transform: none;">
+            {{validationTeamSuccessMessage}}
+            </md-button>
+          </section>
+
+          <md-input-container class="md-block">
+            <label>Team Name</label>
+            <input required="" name="teamName" id="teamName" ng-model="teamName" ng-change="checkInput()">
+            <div ng-messages="addTeamForm.teamName.$error">
+              <div ng-message="required">This is required.</div>
+            </div>
+          </md-input-container>
+
+          <md-input-container class="md-block">
+            <label>Project Name</label>
+            <input required="" name="projectName" ng-model="projectName">
+            <div ng-messages="addTeamForm.projectName.$error">
+              <div ng-message="required">This is required.</div>
+            </div>
+          </md-input-container>
+
+          <md-input-container class="md-block">
+            <label>Jira Board Name</label>
+            <input required="" name="boardName" ng-model="boardName">
+            <div ng-messages="addTeamForm.boardName.$error">
+              <div ng-message="required">This is required.</div>
+            </div>
+          </md-input-container>
+
+          <md-input-container class="md-block">
+            <label>Git Repository Names</label>
+            <input name="repoNames" ng-model="repoNames" ng-pattern="/^[a-zA-Z0-9,-]*$/">
+            <div ng-messages="addTeamForm.repoNames.$error" multiple="" md-auto-hide="false">
+              <div ng-message="pattern"> ex) bv-vger,jolt,emoDB (comma separated values)</div>
+            </div>
+          </md-input-container>
+        </div>
+      </md-dialog-content>
+
+      <md-dialog-actions layout="row">
+        <span flex></span>
+        <md-button class="md-primary md-raised" ng-disabled="addTeamForm.$invalid" type="submit" ng-click="addTeam()">
+          Submit
+        </md-button>
+      </md-dialog-actions>
+    </form>
+  </md-dialog>
+</script>
+<!-- end of material design dialog -->

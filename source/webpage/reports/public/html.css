@@ -1,0 +1,571 @@
+
+  :root{
+    --main-font-size: 16px !important;
+    --mainTextBox-width: 10%;
+  }
+
+  .button {
+    font-size: 14px;
+    margin-left: 15px;  
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(176,190,197);
+    color: rgba(0,0,0,0.87);
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    min-width: 76px;
+    line-height: 26px;
+}
+.button:hover {background-color: #3e8e41}
+
+.button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 1px #666;
+  transform: translateY(4px);
+}
+
+.downloadButton{
+  border-left: 1px solid rgb(176, 190, 197); 
+  padding-left: 15px; 
+  display: inline-block; 
+  font-size: inherit; 
+  position: absolute;
+  right: 0; 
+  padding-right: 15px;
+}
+
+.button2 {
+  float: right; 
+  margin-top:2px;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: #f4511e;
+  border: none;
+  color: #FFFFFF;
+  text-align: center;
+  font-size: var(--main-font-size);
+  transition: all 0.5s;
+  cursor: pointer;
+  min-width: 76px;
+  line-height: 26px;
+}
+
+.button2 span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.5s;
+}
+
+.button2 span:after {
+  content: ' ⬇';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -10px;
+  transition: 0.5s;
+}
+
+.button2:hover span {
+  padding-right: 20px;
+}
+
+.button2:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+
+
+/* REST OF STYLING IS THE HTML.CSS FILE
+--------------------------------------------- */
+/*
+ * Base structure
+ */
+
+html, body {
+  height: 100%;
+  display: inline;
+  width: inherit;
+  background-color: #FFF;
+  font-size: var(--main-font-size);
+}
+
+.nav a,.nav a:hover,.nav a:visited,.nav a:active,.nav a:link{
+  text-decoration: none;
+  color: white;
+}
+
+.noSelect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+:focus {
+    outline: none !important;
+}
+
+/*
+ * Give full height to parent divs of google chart to preserve area while loading
+ */
+.templates {
+  height: 100%
+}
+
+.metrics {
+  height: 100%;
+}
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+
+.form-label {
+  color: black;
+}
+
+/* Hide default margin for full chart body screen */
+.navbar {
+  border-radius: 0px;
+  color: white;
+  font-size: var(--main-font-size);
+}
+
+.text-padding{
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 15px;
+  padding-right: 15px; 
+}
+
+/*
+* Hamburger drop-down menu
+*/
+
+.mainNav{
+  float:right!important;
+ }
+.navicon{
+  font-size: 18px;
+  margin: 0px;
+  line-height: 0;
+  color: white;
+  padding-top: 10px;
+  padding-left: 15px;
+  cursor: pointer;
+ }
+.mainNavDropDown{
+  color: white;
+  font-size: inherit;
+  list-style: none;
+  padding-right: 20px;
+  padding-left: 20px;
+  text-align: center;
+  display: none;
+ }
+.mainNavDropDown li{
+  font-size: inherit;
+  border-bottom: 1px solid black;
+ }
+.mainNavDropDown li:last-child{
+  border-bottom: none;
+ }
+.mainNavDropDown li:hover{
+  background: black;
+ }
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+}
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+.main .page-header {
+  margin-top: 0;
+}
+
+
+/*
+ * Charts
+ */
+.border-top-left {
+  border-right: solid #E0E0E0;
+  border-bottom: solid #E0E0E0;
+  position:relative;
+}
+
+.border-top-right {
+  border-bottom: solid #E0E0E0;
+  position:relative;
+}
+
+.border-bottom-left {
+  border-right: solid #E0E0E0;
+  position:relative;
+}
+
+.border-bottom-right {
+  position:relative;
+}
+
+.google-chart {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  margin-right: 5px;
+  margin-left: 5px;
+  width: 100%; 
+  height: 90%;
+}
+
+.quad {
+  height: 50%
+}
+
+.graph-header{
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.graph-title{
+  font-size: 20px;
+}
+
+.graph-options{
+  float: right;
+  margin-right: 10px;
+}
+
+.header-icon {
+  font-weight: bold;
+  font-size: 18px;
+}
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.placeholders h4 {
+  margin-bottom: 0;
+}
+.placeholder {
+  margin-bottom: 20px;
+}
+.placeholder img {
+  display: inline-block;
+  border-radius: 50%;
+}
+
+div .uib-datepicker{
+  color: #000;
+  background-color: #eeeeee;
+}
+
+.uib-day .btn[disabled] {
+  filter: alpha(opacity=90);
+  background-color: #690000;
+  color: #777;
+}
+
+
+/* Error messages */
+.popover {
+  background-color: #d9534f;
+  border-color: #d43f3a;
+  width: 180px;
+}
+
+.popover.right > .arrow:after {
+  border-right-color: #d9534f;
+}
+.popover.bottom > .arrow:after {
+  border-bottom-color: #d9534f;
+}
+
+/* Formatting forms */
+.navbar-form .short-input {
+  width: 150px;
+}
+
+.navbar-form .xshort-input {
+  width: 80px;
+}
+
+/* Using has-feedback with ng-class thinks the elements are first-child, removing the right corner roundings */
+input#corner{
+  border-top-right-radius: 4px; 
+  border-bottom-right-radius: 4px;
+}
+
+
+/* Configuration */
+.navbar-form-config {
+    padding-right: 40px;
+}
+
+.navbar.navbar-inverse.navigation {
+    min-height: 30px;
+    z-index: 200;
+}
+
+.breadcrumb {
+    background: #62757f;
+    margin: 0px;
+    padding-top: 12px;
+}
+.breadcrumb li {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+.breadcrumb > li + li:before {
+    font-size: 13px;
+    content: "▶ ";
+    padding: 0 5px;
+}
+.breadcrumb a {
+}
+
+.breadcrumb a:hover {
+    text-decoration: none;
+}
+
+.breadcrumb.list-inline {
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+.overlay{
+  position: absolute;
+  z-index: 2000;
+  background: #2134d4ed;
+}
+
+.navbar .breadcrumb md-icon{
+    color: white;
+    font-size: 20px;
+}
+
+.navbar md-icon:hover{
+    color: black;
+}
+
+md-icon.on {
+    color: black;
+}
+
+md-icon.off {
+    color: rgba(0,0,0,0.54);
+}
+
+md-icon.project-edit.on {
+    color: black;
+}
+
+md-icon.project-edit.off {
+}
+`
+.logo {
+    height: 4rem;
+    width: 5.5rem;
+}
+
+.logo-image {
+    height: 100%;
+    width: 100%;
+}
+
+.material-icons.md-light { }
+
+.material-icons.md-dark {
+  color: black; }
+
+.bootstrap-select>.dropdown-toggle {
+  font-size: 14px;
+}
+
+.bs-select {
+  width: var(--mainTextBox-width) !important;
+  min-width: auto;
+  border-right: 1px solid #B0BEC5;
+  padding-right: 15px;
+  height: 35px;
+}
+
+.bs-select .dropdown-menu{
+  font-size: 14px;
+}
+
+.menuStyles {
+  color: #000;
+  font-weight: 400;
+  width: auto;
+  vertical-align: -webkit-baseline-middle;
+}
+
+.inlineMenu {
+  display: inline-block;
+  font-size: inherit;
+  width: inherit;
+}
+
+.inlineMenu-next {
+  display: inline-block;
+  margin-left: 15px;
+  margin-right: 5px;
+  font-size: var(--main-font-size) !important;
+}
+
+.charts {
+  font-family: sans-serif;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  background-color: #FFF;
+}
+
+.fullScreenBottom {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  font-size: 20px;
+  z-index: 300;
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.chartTitles{
+  padding-top: 10px;
+  position: relative;
+  z-index: 200 !important;
+}
+
+.chartTitles > button { 
+  font-size: 20px !important;
+  font-weight: 700;
+  justify-content: center;
+  padding-left: 15px;
+  width: auto !important;
+}
+
+.dropDownSelection {
+  font-size: 20px; 
+  font-weight: 700 !important; 
+  justify-content: center; 
+  display: flex;
+}
+
+.fixed-content {
+  top:0;
+  left:0;
+  bottom:0;
+  position:fixed;
+  overflow-y:scroll;
+  overflow-x:hidden;
+}
+
+.loadingModal {
+  display:    none;
+  position:   fixed;
+  z-index:    1000;
+  top:        0;
+  left:       0;
+  height:     100%;
+  width:      100%;
+  background: rgba( 255, 255, 255, .8 ) 
+              url(loader.gif) 
+              50% 50% 
+              no-repeat;
+}
+
+.loadingText {
+  display:    none;
+  position:   fixed;
+  z-index:    1000;
+  top: 42%;
+  left: 47%;
+  font-size: 20px;
+}
+
+body.loading .loadingModal .loadingText {
+  overflow: hidden;   
+}
+
+body.loading .loadingModal,.loadingText {
+  display: block;
+}
+
+.noLeadTimeDataModal {
+  display:    none;
+  position:   fixed;
+  z-index:    -1;
+  top:        0;
+  left:       0;
+  height:     100%;
+  width:      100%;
+}
+
+.noLeadTimeDataText {
+  position:   fixed;
+  z-index:    10;
+  top: 40%;
+  left: 35%;
+  font-size: 20px;
+}
+
+body.noLeadTimeData .noLeadTimeDataModal .noLeadTimeDataText {
+  overflow: hidden;   
+}
+
+body.noLeadTimeData .noLeadTimeDataModal,.noLeadTimeDataText {
+  display: block;
+}
+
+.hamburgerOpenedModal {
+  display:    none;
+  position:   fixed;
+  z-index:    10;
+  top:        0;
+  left:       0;
+  height:     100%;
+  width:      100%;
+  background: rgba( 0, 0, 0, 0) 
+              50% 50% 
+              no-repeat;
+}
+
+body.hamburgerOpened .hamburgerOpenedModal .hamburgerOpenedText{
+  overflow: hidden;   
+}
+
+body.hamburgerOpened .hamburgerOpenedModal,.hamburgerOpenedText {
+  display: block;
+}

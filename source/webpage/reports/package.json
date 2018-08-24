@@ -1,0 +1,22 @@
+{
+  "name": "quarterly-reports-reactJS",
+  "description": "ReactJS framework used to build quarterly-reports tool for VGer",
+  "version": "0.0.1",
+  "dependencies": {
+    "bootstrap": "3.3.7",
+    "greenkeeper-lockfile": "~1.15.1",
+    "jquery": "^3.3.1",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-google-charts": "^3.0.5"
+  },
+  "devDependencies": {
+    "react-scripts": "^1.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
