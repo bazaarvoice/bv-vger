@@ -28,7 +28,9 @@ bindir=`dirname $0`
 bindir=`cd $bindir; pwd`
 
 # Run private file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-source ../../bv-vger-config/vger-config-setup-private.sh 
+cd ..
+sh bv-vger-config/vger-config-setup-private.sh 
+cd ${bindir}
 
 env=$1
 case $env in
@@ -36,6 +38,7 @@ case $env in
       *) echo "Unknown deployment environment: $env" >&2; exit 1;;   
 esac
 
+cd ..
 lambdaDir=${2:-`pwd`}
 if [ ! -f ${lambdaDir}/serverless.yml ] ; then
     echo "${lambdaDir} is not a lambda directory" >&2
@@ -51,4 +54,7 @@ serverless deploy --stage $env
 cd $bindir
 
 # Run public file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-source ../../bv-vger-config/vger-config-setup-public.sh 
+cd ../..
+sh bv-vger-config/vger-config-setup-public.sh 
+cd ${bindir}
+
