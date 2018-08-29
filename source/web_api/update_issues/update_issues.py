@@ -13,7 +13,8 @@ def response_formatter(status_code='400', body={'message': 'error'}):
             'Access-Control-Allow-Origin' : '*',
             'Access-Control-Allow-Credentials' : True
         },
-        'body': json.dumps(body)
+        'body': json.dumps(body),
+        "isBase64Encoded": False
     }
     return api_response
 
@@ -86,7 +87,7 @@ def handler(event, context):
     # Validate JQL
     queryString = urllib.quote(issue_filter, safe='')
     queryString += '&fields=*none&maxResults=0'
-    pageURL = JQL_SEARCH_URL.format(queryString)
+    pageURL = web_api_constants.JQL_SEARCH_URL.format(queryString)
     r = requests.get(pageURL, auth=(JH_USER, JH_PASS))
     if not r.ok:
         payload = {"message": "Error in the JQL Query: {}".format(r.content)}
