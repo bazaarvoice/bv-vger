@@ -51,6 +51,6 @@ cd ${lambdaDir}
 # If necessary, generate the environment variable configuration for this lambda directory
 ${bindir}/env-config.sh ${force:+-f} ${env}
 
-serverless package --stage ${env} --ssm-store ${ssm_store}
+serverless deploy --stage ${env} --ssm-store ${ssm_store}
 
 cd ${bindir}
