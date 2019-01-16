@@ -8,11 +8,6 @@ echo "//-------------------------PHASE 0: BUILD OPTIMIZED APP-------------------
 bindir=`dirname $0`
 bindir=`cd ${bindir}; pwd`
 
-# Run private file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-cd ..
-sh bv-vger-config/vger-config-setup-private.sh 
-cd ${bindir}
-
 # Run current UI code in a local Web server
 cd ${bindir}/../source/webpage/reports
 
@@ -31,7 +26,7 @@ echo "//-------------------------PHASE 1: INITIAL CONFIGURATION-----------------
 
 usage()
 {
-    echo Usage: `basename $0` "env" >&2
+    echo Usage: `basename $0` "<env> <ssm_store>" >&2
     echo "" >&2
     echo "  Sets up report configuration for the specified environment (either 'qa' or 'prod') and then deploys" >&2
 }
@@ -44,7 +39,7 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-if [[ $# -ne 1 ]] ; then
+if [[ $# -ne 2 ]] ; then
     usage
     exit 1
 fi
@@ -53,12 +48,16 @@ echo "//-------------------------PHASE 2: DEFINE S3 BUCKET----------------------
 
 # Define the target S3 bucket for this environment
 env=$1
-source deployConstants.sh
+
+ssm_store=$2
+if [[ -z "$ssm_store" ]] ; then
+    echo "no ssm-store was defined" >&2
+    exit 1
+fi
 
 case ${env} in
-   prod) bucket_name=${prod_bucket};;
-     qa) bucket_name=${qa_bucket};;
-      *) echo "Unknown environment: $env" >&2; exit 1;;   
+   prod|qa) bucket_name=$(aws ssm get-parameter --name /${ssm_store}/s3/${env}/bucket_name --query "Parameter"."Value" --output text);;
+         *) echo "Unknown environment: $env" >&2; exit 1;;
 esac
 
 # Define the UI config file for this environment         
@@ -77,14 +76,9 @@ aws s3 sync source/webpage s3://${bucket_name}/vger --exclude "*" --include "app
 cd ${bindir}/../source/webpage/reports
 sh deRouter.sh
 
-echo "Done derouting report app for local dev!" 
+echo "Done de-routing report app for local dev!"
 
 rm ${reports_config}
 
 #leave current directory in order to get back template files
-cd ${bindir}
-
-# Run public file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-cd ../..
-sh bv-vger-config/vger-config-setup-public.sh 
 cd ${bindir}

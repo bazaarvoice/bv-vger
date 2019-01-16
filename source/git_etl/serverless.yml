@@ -1,24 +1,29 @@
+# ${opt:stage} - References the Environment that you would like to work with
+# ${opt:ssm-store} - References the parent SSM Store location for your Vger Deployment e.g. devops-vger
+
 service: vger-git-etl
 provider:
   name: aws
   runtime: python2.7
   stage: ${opt:stage}
   region: us-east-1
-  role: #ROLE GOES HERE
+  role: ${ssm:/${opt:ssm-store}/${opt:stage}/role}
   stackTags:
-    #TEAM : TEAM EMAIL
+    TEAM: ${ssm:/${opt:ssm-store}/team}
   environment:
-    DATABASE_NAME: ${file(./env/env.${self:provider.stage}.yml):DATABASE_NAME}
-    REDSHIFT_PORT: ${file(./env/env.${self:provider.stage}.yml):REDSHIFT_PORT}
-    AWS_RS_USER: ${file(./env/env.${self:provider.stage}.yml):AWS_RS_USER}
-    AWS_RS_PASS: ${file(./env/env.${self:provider.stage}.yml):AWS_RS_PASS}
-    CLUSTER_ENDPOINT: ${file(./env/env.${self:provider.stage}.yml):CLUSTER_ENDPOINT}
-    JH_JIRAURL: ${file(./env/env.${self:provider.stage}.yml):JH_JIRAURL}
-    JH_USER: ${file(./env/env.${self:provider.stage}.yml):JH_USER}
-    JH_PASS: ${file(./env/env.${self:provider.stage}.yml):JH_PASS}
-    GIT_API_USER: ${file(./env/env.${self:provider.stage}.yml):GIT_API_USER}
-    GIT_API_KEY: ${file(./env/env.${self:provider.stage}.yml):GIT_API_KEY}
-    ENV: ${file(./env/env.${self:provider.stage}.yml):ENV}
+    #    why do we need to provide extra credentials here?
+    DATABASE_NAME: ${ssm:/${opt:ssm-store}/redshift/${opt:stage}/database_name}
+    REDSHIFT_PORT: ${ssm:/${opt:ssm-store}/redshift/${opt:stage}/port}
+    AWS_RS_USER: ${ssm:/${opt:ssm-store}/redshift/${opt:stage}/username}
+    AWS_RS_PASS: ${ssm:/${opt:ssm-store}/redshift/${opt:stage}/password~true}
+    CLUSTER_ENDPOINT: ${ssm:/${opt:ssm-store}/redshift/${opt:stage}/cluster_endpoint}
+    GIT_API_USER: ${ssm:/${opt:ssm-store}/git/${opt:stage}/api_user}
+    GIT_API_KEY: ${ssm:/${opt:ssm-store}/git/${opt:stage}/api_key~true}
+    ENV: ${opt:ssm-store}
+    # I would like to remove these credentials from this serverless call
+    JH_JIRAURL: ${ssm:/${opt:ssm-store}/jira/${opt:stage}/host_url}
+    JH_USER: ${ssm:/${opt:ssm-store}/jira/${opt:stage}/username}
+    JH_PASS: ${ssm:/${opt:ssm-store}/jira/${opt:stage}/password~true}
 package:
   individually: true
 

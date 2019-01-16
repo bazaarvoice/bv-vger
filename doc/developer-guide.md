@@ -57,12 +57,30 @@
     - S3
     - Redshift
     - APIGateway
+    - SSM Parameter Store
 2. Get yourself an IDE. Recommend [PyCharm](https://www.jetbrains.com/pycharm/)
 
 #### Deployment Preparation
 
 1. Make sure you have installed `Node.js` and install `serverless` via `npm`.
 2. Install [Docker]((https://docs.docker.com/docker-for-mac/install/#install-and-run-docker-for-mac)).
+
+#### Configuration Preparation
+We are using SSM Parameter store for some configuration details. These details are expected to be available from the parameter store:
+
+* `/<your_parameter_prefix>/team` This is used to tag AWS Resources
+* `/<your_parameter_prefix>/role` AWS Role for the Vger Service
+* `/<your_parameter_prefix>/redshift/<env>/password` SecureString password for your redshift instance
+* `/<your_parameter_prefix>/redshift/<env>/username` Username for Vger's access to redshift
+* `/<your_parameter_prefix>/redshift/<env>/cluster_endpoint` The Endpoint of the redshift cluster
+* `/<your_parameter_prefix>/redshift/<env>/database_name` The name of the database on the redshift cluster
+* `/<your_parameter_prefix>/redshift/<env>/port` The port that redshift uses
+* `/<your_parameter_prefix>/jira/<env>/host_url` The host_url of your Jira implementation
+* `/<your_parameter_prefix>/jira/<env>/username` The username that Vger will use to access Jira
+* `/<your_parameter_prefix>/jira/<env>/password` SecureString password for your Vger's Jira user
+* `/<your_parameter_prefix>/git/<env>/api_user` The git API user id
+* `/<your_parameter_prefix>/git/<env>/api_key` SecureString password for Vger's access to github
+* `/<your_parameter_prefix>/s3/<env>/bucket_name` The s3 bucket where Vger will be hosted
 
 #### Local Development Preparation
 
@@ -85,24 +103,16 @@ Use this command to print Vger environment configuration for either the `qa` or 
     deploy/env-config.sh -p qa
     ```
 
-    You need to put the environment variables in `.bash_profile` with the following format:
-
-    ```
-    export AWS_RS_USER='masteruser'
-    ...
-    ...
-    ```
-
 
 #### How to connect to the database
-
-To connect to the data, following values are needed in the bash_profile:
-
-* **AWS_RS_PASS**: The database user password
-* **AWS_RS_USER**: The database user name
-* **CLUSTER_ENDPOINT**: The database host
-* **DATABASE_NAME**: The database name
-* **REDSHIFT_PORT**: The database port
+Getting the necessary parameters out of ssm
+```
+AWS_RS_PASS=$(aws ssm get-parameter --name /<your_parameter_prefix>/redshift/<env>/password --query "Parameter"."Value" --output text --with-decryption);;
+AWS_RS_USER=$(aws ssm get-parameter --name /<your_parameter_prefix>/redshift/<env>/username --query "Parameter"."Value" --output text);;
+CLUSTER_ENDPOINT=$(aws ssm get-parameter --name /<your_parameter_prefix>/redshift/<env>/cluster_endpoint --query "Parameter"."Value" --output text);;
+DATABASE_NAME=$(aws ssm get-parameter --name /<your_parameter_prefix>/redshift/<env>/database_name --query "Parameter"."Value" --output text);;
+REDSHIFT_PORT=$(aws ssm get-parameter --name /<your_parameter_prefix>/redshift/<env>/port --query "Parameter"."Value" --output text);;
+```
 
 **Option 1.** Using the `psql` command  
 ```
@@ -170,7 +180,7 @@ For example:
 ```
 # Deploy the Jira ETL serverless configuration to the QA environment
 cd bv-vger
-deploy/deploy-lambda qa source/jira_etl
+deploy/deploy-lambda qa <your_parameter_prefix> source/jira_etl
 ```
 
 <a name="frontend"/>

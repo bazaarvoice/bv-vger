@@ -3,7 +3,7 @@ set -e
 
 usage()
 {
-    echo Usage: `basename $0` "[-f] [-p] deployEnv [lambdaDir]" >&2
+    echo Usage: `basename $0` "[-f] [-p] <deployEnv> [lambdaDir]" >&2
     echo "" >&2
     echo "  Generates the environment variable configuration file for the given deployment environment (either 'qa' or 'prod')" >&2
     echo "  in the specified lambda directory. If lambdaDir is omitted, the current working directory is assumed." >&2

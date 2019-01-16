@@ -3,7 +3,7 @@ set -e
 
 usage()
 {
-    echo Usage: `basename $0` "env" >&2
+    echo Usage: `basename $0` "<env>" >&2
     echo "" >&2
     echo "  Sets up UI configuration for the specified environment (either 'qa' or 'prod')" >&2
 }
@@ -26,9 +26,8 @@ bindir=`cd ${bindir}; pwd`
 
 env=$1
 case ${env} in
-   prod) ;;
-     qa) ;;
-      *) echo "Unknown environment: $env"; exit 1;;   
+   prod|qa) ;;
+         *) echo "Unknown environment: $env"; exit 1;;
 esac
 
 # Setup the UI config file for this environment         

@@ -3,7 +3,7 @@ set -e
 
 usage()
 {
-    echo Usage: `basename $0` "env" >&2
+    echo Usage: `basename $0` "<env> <ssm_store>" >&2
     echo "" >&2
     echo "  Deploys UI JavaScript code and supporting API code to the specified environment (either 'qa' or 'prod')" >&2
 }
@@ -16,7 +16,7 @@ while [[ $# -gt 0 ]] ; do
   shift
 done
 
-if [[ $# -ne 1 ]] ; then
+if [[ $# -ne 2 ]] ; then
     usage
     exit 1
 fi
@@ -24,19 +24,22 @@ fi
 bindir=`dirname $0`
 bindir=`cd ${bindir}; pwd`
 
-# Run private file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-cd ..
-sh bv-vger-config/vger-config-setup-private.sh 
-cd ${bindir}
-
 # Define the target S3 bucket for this environment
 env=$1
-source deployConstants.sh
+case ${env} in
+   prod|qa) ;;
+         *) echo "Unknown deployment environment: $env" >&2; exit 1;;
+esac
+
+ssm_store=$2
+if [[ -z "$ssm_store" ]] ; then
+    echo "no ssm-store was defined" >&2
+    exit 1
+fi
 
 case ${env} in
-   prod) bucket_name=${prod_bucket};;
-     qa) bucket_name=${qa_bucket};;
-      *) echo "Unknown environment: $env" >&2; exit 1;;   
+   prod|qa) bucket_name=$(aws ssm get-parameter --name /${ssm_store}/s3/${env}/bucket_name --query "Parameter"."Value" --output text);;
+         *) echo "Unknown environment: $env" >&2; exit 1;;
 esac
 
 # Define the UI config file for this environment         
@@ -47,9 +50,4 @@ cd ${bindir}/..
 aws s3 sync source/webpage s3://${bucket_name}/vger --include "*" --exclude 'reports/*' 
 rm ${ui_config}
 
-cd ${bindir}
-
-# Run public file transfer script (only works if bv-vger-config is in same root directory as bv-vger)
-cd ../..
-sh bv-vger-config/vger-config-setup-public.sh 
 cd ${bindir}
