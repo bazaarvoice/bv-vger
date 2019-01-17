@@ -1,4 +1,5 @@
 import json
+import boto3
 import os
 import requests
 import urllib
@@ -6,17 +7,19 @@ from redshift_connection import RedshiftConnection
 
 import web_api_constants
 
+
 def response_formatter(status_code='400', body={'message': 'error'}):
     api_response = {
         'statusCode': status_code,
         'headers': {
-            'Access-Control-Allow-Origin' : '*',
-            'Access-Control-Allow-Credentials' : True
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Credentials': True
         },
         'body': json.dumps(body),
         "isBase64Encoded": False
     }
     return api_response
+
 
 def handler(event, context):
     # Validate user input
@@ -39,9 +42,13 @@ def handler(event, context):
         payload = {"message": "Could not get id path parameter"}
         return response_formatter(status_code='400', body=payload)
 
-    JH_USER = os.environ['JH_USER']
-    JH_PASS = os.environ['JH_PASS']
-    JH_JIRAURL = os.environ['JH_JIRAURL']
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
+    JH_USER = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    JH_PASS = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+    JH_JIRAURL = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/host_url'.format(ssm_base=ssm_base, env=ENV))
 
     # Validate board_name exists
     try:
@@ -52,7 +59,7 @@ def handler(event, context):
         for board in boards:
             if board['name'] == board_name:
                 board_id = board['id']
-        board_id # raise exception if it does not exist
+        board_id  # raise exception if it does not exist
     except:
         payload = {'message': 'Invalid board name: \'{}\''.format(board_name)}
         return response_formatter(status_code='400', body=payload)

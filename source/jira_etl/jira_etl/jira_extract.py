@@ -1,6 +1,7 @@
 from __future__ import print_function
 import json
 import yaml
+import boto3
 import os
 import requests
 import urllib
@@ -11,13 +12,21 @@ from jira_transform import jiraTransform
 
 import jira_etl_constants
 
+
 def handler(event, context):
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
     connection_detail = {
-        'dbname': os.environ['DATABASE_NAME'],
-        'host': os.environ["CLUSTER_ENDPOINT"],
-        'port': os.environ['REDSHIFT_PORT'],
-        'user': os.environ['AWS_RS_USER'],
-        'password': os.environ['AWS_RS_PASS']
+        'dbname': ssm_client.get_parameter(
+            Name='/{ssm_base}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV)),
+        'host': ssm_client.get_parameter(
+            Name='/{ssm_base}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV)),
+        'port': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV)),
+        'user': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV)),
+        'password': ssm_client.get_parameter(
+            Name='/{ssm_base}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV))
     }
 
     conn = psycopg2.connect(**connection_detail)
@@ -59,8 +68,8 @@ def handler(event, context):
 
             cur.execute(updateLastETLRunQuery, (int(start_time), event["id"]))
 
-    E_JH_USER = os.environ["JH_USER"]
-    E_JH_PASS = os.environ["JH_PASS"]
+    E_JH_USER = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    E_JH_PASS = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
 
     # Write file headers for the CSV file
     base_header = ['changedTimestamp', 'issueKey', 'fieldName', 'prevValue', 'newValue']
@@ -70,7 +79,7 @@ def handler(event, context):
     columns = ([teamConfig['id']] + base_columns)
 
     fileName = teamConfig['name']
-    print ("Fetching issues for {}".format(teamConfig['name']))
+    print("Fetching issues for {}".format(teamConfig['name']))
 
     if teamConfig['last_issue_change']:
         initialLoad = False
@@ -88,8 +97,8 @@ def handler(event, context):
 
     # # Query for the total number of issues for this JQL
     # # https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis/jira-rest-api-tutorials/jira-rest-api-example-query-issues
-    query = jira_etl_lib.create_final_issue_jql(teamConfig,timestampSince)
-    print (query)
+    query = jira_etl_lib.create_final_issue_jql(teamConfig, timestampSince)
+    print(query)
 
     queryString = urllib.quote(query, safe='')
     queryString += '&fields=*none&maxResults=0'
@@ -106,20 +115,22 @@ def handler(event, context):
         yamlObj = yaml.safe_load(dump)
         totalIssues = yamlObj['total']
     else:
-        print ("ERROR: Status code: {} returned".format(int(r.status_code)))
+        print("ERROR: Status code: {} returned".format(int(r.status_code)))
         return
 
-    print ("Total issues: {}".format(totalIssues))
+    print("Total issues: {}".format(totalIssues))
 
-    if (totalIssues == 0):
-        print ("No new issues for {}".format(teamConfig['name']))
+    if totalIssues == 0:
+        print("No new issues for {}".format(teamConfig['name']))
     else:
         while startAt < totalIssues:
-            print ("Starting batch loading! Part: " + str(filePart))
-            print ("starting at {}".format(startAt))
-            print ("batch size of {}".format(batchSize))
+            print("Starting batch loading! Part: " + str(filePart))
+            print("starting at {}".format(startAt))
+            print("batch size of {}".format(batchSize))
             # Create the payload for the lambda function
-            payload = {"columns": columns, "headers": headers, "fileName": fileName, "filePart": filePart, "batchSize": batchSize, "startAt": startAt, "teamConfig": teamConfig, "initialLoad": initialLoad, "timestampSince": timestampSince}
+            payload = {"columns": columns, "headers": headers, "fileName": fileName, "filePart": filePart,
+                       "batchSize": batchSize, "startAt": startAt, "teamConfig": teamConfig, "initialLoad": initialLoad,
+                       "timestampSince": timestampSince}
 
             jiraTransform(payload)
 

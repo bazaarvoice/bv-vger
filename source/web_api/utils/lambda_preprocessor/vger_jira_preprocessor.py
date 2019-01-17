@@ -1,4 +1,5 @@
 from __future__ import print_function
+import boto3
 import os
 import re
 from urllib import quote
@@ -10,13 +11,21 @@ from response_helper import response_formatter
 
 import web_api_constants
 
+
 class VgerJiraPreprocessor(LambdaPreprocessor):
     def __init__(self, event):
+        ENV = os.environ['ENV']
+        ssm_base = os.environ["VGER_SSM_BASE"]
+        ssm_client = boto3.client('ssm')
+
         LambdaPreprocessor.__init__(self, event)
         self.jira_config = {
-            "JIRA_USER": os.environ['JH_USER'],
-            "JIRA_PASS": os.environ['JH_PASS'],
-            "JIRA_URL": os.environ['JH_JIRAURL']
+            "JIRA_USER": ssm_client.get_parameter(
+                Name='/{ssm_base}/jira/{env}/username'.format(ssm_base=ssm_base, env=ENV)),
+            "JIRA_PASS": ssm_client.get_parameter(
+                Name='/{ssm_base}/jira/{env}/password'.format(ssm_base=ssm_base, env=ENV)),
+            "JIRA_URL": ssm_client.get_parameter(
+                Name='/{ssm_base}/jira/{env}/host_url'.format(ssm_base=ssm_base, env=ENV))
         }
 
     @preprocessor_error_handling
@@ -36,7 +45,7 @@ class VgerJiraPreprocessor(LambdaPreprocessor):
                 # Jira only allows to query board names that contain a string
                 # which may result in multiple values returned
                 JIRA_BOARD_API = web_api_constants.BOARD_NAME_URL.format(self.jira_config["JIRA_URL"],
-                                                                          encoded_board_name)
+                                                                         encoded_board_name)
                 content = requests.get(JIRA_BOARD_API,
                                        auth=(self.jira_config["JIRA_USER"], self.jira_config["JIRA_PASS"])).json()
                 boards = content['values']
@@ -80,4 +89,3 @@ class VgerJiraPreprocessor(LambdaPreprocessor):
 
     def get_board_id(self):
         return self.param["board_id"]
-    

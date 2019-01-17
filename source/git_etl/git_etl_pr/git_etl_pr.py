@@ -1,4 +1,5 @@
 from __future__ import division
+import boto3
 import os
 import requests
 import psycopg2
@@ -6,21 +7,26 @@ import json
 
 import git_etl_constants
 
+
 def handler(event, context):
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
     # AWS connection init
     connection_detail = {
-        'dbname': os.environ['DATABASE_NAME'],
-        'host': os.environ["CLUSTER_ENDPOINT"],
-        'port': os.environ['REDSHIFT_PORT'],
-        'user': os.environ['AWS_RS_USER'],
-        'password': os.environ['AWS_RS_PASS']
+        'dbname': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV)),
+        'host': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV)),
+        'port': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV)),
+        'user': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV)),
+        'password': ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
     }
 
     conn = psycopg2.connect(**connection_detail)
 
     # Git key
-    E_GIT_API_USER = os.environ['GIT_API_USER']
-    E_GIT_API_KEY = os.environ['GIT_API_KEY']
+    E_GIT_API_USER = ssm_client.get_parameter(Name='/{ssm_base}/git/{env}/api_user'.format(ssm_base=ssm_base, env=ENV))
+    E_GIT_API_KEY = ssm_client.get_parameter(Name='/{ssm_base}/git/{env}/api_key'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
 
     MINIMUM_RATE_REMAINING = 500
     PAGE_SIZE = 100
@@ -32,7 +38,7 @@ def handler(event, context):
     watermark_query = "SELECT watermark_value FROM git_watermarks WHERE repo_name = (%s) AND table_name = (%s)"
     with conn:
         with conn.cursor() as cur:
-            cur.execute(watermark_query, (repo_name, table_name, ))
+            cur.execute(watermark_query, (repo_name, table_name,))
             watermark_result = cur.fetchone()
             objects_added = int(watermark_result[0]) if watermark_result else 0
 
@@ -169,7 +175,7 @@ def handler(event, context):
 
             # Logging purpose
             if (idx + 1) % (PAGE_SIZE // 2) == 0:
-                print("{}/{} open pull requests update on repo {} finished.".format(idx+1, open_prs_count, repo_name))
+                print("{}/{} open pull requests update on repo {} finished.".format(idx + 1, open_prs_count, repo_name))
 
         else:
             print("ERROR on API requests while updating open pull requests: {}".format(str(r.content)))

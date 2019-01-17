@@ -1,23 +1,9 @@
 #!/usr/bin/env bash
 usage()
 {
-    echo Usage: `basename $0` "deployEnv" >&2
+    echo Usage: `basename $0` "<deployEnv> <ssm_store>" >&2
     echo "" >&2
     echo "Prints to standard output a shell command that defines the Postgres CLI for the given deployment environment." >&2
-}
-
-dbParams()
-{
-    ${binDir}/../deploy/env-config.sh -p $1 |
-    tr -d ":'" |
-    awk '
-        $1 == "AWS_RS_PASS" { password = $2; next; }
-        $1 == "AWS_RS_USER" { user = $2; next; }
-        $1 == "CLUSTER_ENDPOINT" { cluster = $2; next; }
-        $1 == "DATABASE_NAME" { db = $2; next; }
-        $1 == "REDSHIFT_PORT" { port = $2; next; }
-        END { printf "%s %s %s %s %s", cluster, port, db, user, password; }
-    '
 }
 
 # Get input parameters
@@ -39,6 +25,12 @@ case ${env} in
       *) echo "Unknown deployment environment: $env" >&2; exit 1;;   
 esac
 
+ssm_store=$2
+if [[ -z "$ssm_store" ]] ; then
+    echo "no ssm-store was defined" >&2
+    exit 1
+fi
+
 # CLI environment variables already defined?
 if [[ "$PGCMD" && "$PGPASSWORD" ]] ; then
     # Yes, return "do nothing" command
@@ -47,8 +39,24 @@ else
     # No, get database connection for this environment
     which psql >/dev/null || { echo "Postgres CLI not installed. Please run 'brew install postgres'." >&2; exit 1; }
     binDir=$(dirname $0)
-    read cluster port db user password <<<$(dbParams ${env})
+
+    cluster=$(aws ssm get-parameter --name /${ssm_store}/redshift/${env}/cluster_endpoint --query "Parameter"."Value" --output text)
+    port=$(aws ssm get-parameter --name /${ssm_store}/redshift/${env}/port --query "Parameter"."Value" --output text)
+    db=$(aws ssm get-parameter --name /${ssm_store}/redshift/${env}/database_name --query "Parameter"."Value" --output text)
+    user=$(aws ssm get-parameter --name /${ssm_store}/redshift/${env}/username --query "Parameter"."Value" --output text)
+    password=$(aws ssm get-parameter --name /${ssm_store}/redshift/${env}/password --query "Parameter"."Value" --output text --with-decryption)
 
     # Export CLI environment variable definitions
-    echo export PGCMD="'psql -h $cluster -p $port -d $db -U $user -q -F , -v ON_ERROR_STOP=on -P null=null -A -t'" PGPASSWORD=${password}
+    # -h ~> hostname
+    # -p ~> port
+    # -d ~> database name
+    # -U ~> username
+    # -q ~> quiet
+    # -F ~> field separator
+    # -v ~> variable set
+    # -P ~> specifies printing options
+    # -A ~> print all non-empty input lines to standard output
+    # -t ~> turn off printing column names and footers
+    export PGCMD="'psql -h $cluster -p $port -d $db -U $user -q -F , -v ON_ERROR_STOP=on -P null=null -A -t'"
+    export PGPASSWORD=${password}
 fi

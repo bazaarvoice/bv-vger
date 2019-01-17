@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 usage()
 {
-  echo Usage: `basename $0` "[-n] deployEnv [teamName projectName]" >&2
+  echo Usage: `basename $0` "[-n] <deployEnv> [teamName] [projectName]" >&2
     echo "" >&2
     echo "Deletes the given team project from the given deployment environment. The project to delete" >&2
     echo "is defined by the given team name and project name. If either value is omitted, you must" >&2
@@ -59,11 +59,11 @@ if [[ -z "$projectId" ]] ; then
 fi
 
 # Get project repos
-repos=$(${binDir}/pg-exec.sh <<<"select repo_name from team_repo where team_project_id = ${projectId};") || exit 1
+repos=$(${binDir}/pg-exec.sh ${env} <<<"select repo_name from team_repo where team_project_id = ${projectId};") || exit 1
 
 echo "Deleting project='${project}' for team='${team}'..." >&2
 if [[ -z "$info" ]] ; then
-    ${binDir}/pg-exec.sh <<EOF
+    ${binDir}/pg-exec.sh ${env} <<EOF
 delete from team_jira_project where team_project_id = ${projectId};
 delete from team_work_types where team_project_id = ${projectId};
 delete from team_status_states where team_project_id = ${projectId};

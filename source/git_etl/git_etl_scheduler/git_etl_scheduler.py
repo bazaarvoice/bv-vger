@@ -8,16 +8,24 @@ import psycopg2
 import json
 
 
-def handler (event, context):
+def handler(event, context):
+    # TODO is there a better way to set this?
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+
+    ssm_client = boto3.client('ssm')
 
     # Defining Redshift connection
+    DATABASE_NAME = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV))
+    REDSHIFT_PORT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV))
+    CLUSTER_ENDPOINT = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV))
+    E_AWS_RS_USER = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    E_AWS_RS_PASS = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV))
 
-    DATABASE_NAME = os.environ['DATABASE_NAME']
-    REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
-    CLUSTER_ENDPOINT = os.environ['CLUSTER_ENDPOINT']
-    E_AWS_RS_USER = os.environ['AWS_RS_USER']
-    E_AWS_RS_PASS = os.environ['AWS_RS_PASS']
-    ENV = os.environ['ENV']
     conn = psycopg2.connect(dbname=DATABASE_NAME, host=CLUSTER_ENDPOINT, port=REDSHIFT_PORT,
                             user=E_AWS_RS_USER, password=E_AWS_RS_PASS)
     cur = conn.cursor()
@@ -47,7 +55,7 @@ def handler (event, context):
             # NOTE equivalent to 18, 22, 2, 6, 10, 14 in CST. Plus 1 if in DST.
             payload = {"repo": repo, "table": event.get("table") if event.get("table") else "pull_requests"}
             json_payload = json.dumps(payload)
-            print("Started ETL for "+repo+" pull request")
+            print("Started ETL for " + repo + " pull request")
             function_name = "vger-sls-git-etl-pr-{}".format(ENV)
             lambda_client.invoke(FunctionName=function_name, InvocationType="Event", Payload=json_payload)
         elif hour in [1, 5, 9, 13, 17, 21]:

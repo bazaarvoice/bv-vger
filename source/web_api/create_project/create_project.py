@@ -1,7 +1,7 @@
+import boto3
 import os
 import json
 import requests
-import psycopg2
 import urllib
 import re
 from redshift_connection import RedshiftConnection
@@ -63,12 +63,16 @@ def find_default_end_state(JH_USER, JH_PASS, columns):
     return default_state
 
 def handler(event, context):
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
     # Set env variables
-    GIT_API_USER = os.environ['GIT_API_USER']
-    GIT_API_KEY = os.environ['GIT_API_KEY']
-    JH_USER = os.environ['JH_USER']
-    JH_PASS = os.environ['JH_PASS']
-    JH_JIRAURL = os.environ['JH_JIRAURL']
+    GIT_API_USER = ssm_client.get_parameter(Name='/{ssm_base}/git/{env}/api_user'.format(ssm_base=ssm_base, env=ENV))
+    GIT_API_KEY = ssm_client.get_parameter(Name='/{ssm_base}/git/{env}/api_key'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+    JH_USER = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    JH_PASS = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+    JH_JIRAURL = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/host_url'.format(ssm_base=ssm_base, env=ENV))
     
     # Validate user input
     try: 

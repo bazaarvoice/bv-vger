@@ -6,14 +6,21 @@ import json
 
 
 def handler(event, context):
-    lambda_client = boto3.client('lambda')
-    # Defining Redshift connection
-    DATABASE_NAME = os.environ['DATABASE_NAME']
-    REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
-    CLUSTER_ENDPOINT = os.environ['CLUSTER_ENDPOINT']
-    E_AWS_RS_USER = os.environ['AWS_RS_USER']
-    E_AWS_RS_PASS = os.environ['AWS_RS_PASS']
+    ssm_base = os.environ["VGER_SSM_BASE"]
     ENV = os.environ['ENV']
+
+    lambda_client = boto3.client('lambda')
+    ssm_client = boto3.client('ssm')
+    # Defining Redshift connection
+    DATABASE_NAME = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV))
+    REDSHIFT_PORT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV))
+    CLUSTER_ENDPOINT = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV))
+    E_AWS_RS_USER = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    E_AWS_RS_PASS = ssm_client.get_parameter(
+        Name='/{ssm_base}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV))
     conn = psycopg2.connect(dbname=DATABASE_NAME, host=CLUSTER_ENDPOINT, port=REDSHIFT_PORT,
                             user=E_AWS_RS_USER, password=E_AWS_RS_PASS)
     cur = conn.cursor()
@@ -23,10 +30,10 @@ def handler(event, context):
     rows = cur.fetchall()
     for row in rows:
         teamConfig = {"id": row[0]}
-        print ("Starting JIRA ETL for project {}".format(row[1]))
+        print("Starting JIRA ETL for project {}".format(row[1]))
         jsonPayload = json.dumps(teamConfig)
 
         function_name = "vger-sls-jira-etl-{}".format(ENV)
         lambda_client.invoke(FunctionName=function_name, InvocationType="Event", Payload=jsonPayload)
 
-    print ("jiraScheduler Done")
+    print("jiraScheduler Done")

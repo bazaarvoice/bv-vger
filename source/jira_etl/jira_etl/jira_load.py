@@ -1,22 +1,29 @@
 from __future__ import print_function
-import math, os
+import math
+import os
+import boto3
 import boto
 import psycopg2
 from filechunkio import FileChunkIO
 
 import jira_etl_constants
 
+
 def jiraLoad(data):
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
     # Defining environment variables for accessing private information
-    E_AWS_RS_USER = os.environ['AWS_RS_USER']
-    E_AWS_RS_PASS = os.environ['AWS_RS_PASS']
+    E_AWS_RS_USER = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    E_AWS_RS_PASS = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
     teamConfig = data.get('teamConfig')
 
     # Constants related to the database on the private facing Redshift database
     BUCKET = jira_etl_constants.S3_ENG_BUCKET
-    DATABASE_NAME = os.environ['DATABASE_NAME']
-    REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
-    CLUSTER_ENDPOINT = os.environ['CLUSTER_ENDPOINT']
+    DATABASE_NAME = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV))
+    REDSHIFT_PORT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV))
+    CLUSTER_ENDPOINT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV))
 
     # Since the script is run on lambda, the only file we can write to is /tmp
     PATH = data.get('csvPath')
@@ -33,8 +40,8 @@ def jiraLoad(data):
 
     # Skip the repo if there isn't any extracted data
     if source_size != 0:
-        print (PATH + " starting load")
-        print ("lastIssueChange: {}".format(lastIssueChange))
+        print(PATH + " starting load")
+        print("lastIssueChange: {}".format(lastIssueChange))
         # Create a multipart upload request
         mp = b.initiate_multipart_upload(os.path.basename(PATH))
 
@@ -56,26 +63,26 @@ def jiraLoad(data):
         # Finish the upload
         mp.complete_upload()
 
-        conn = psycopg2.connect(dbname=DATABASE_NAME, host=CLUSTER_ENDPOINT, port=REDSHIFT_PORT, 
-            user=E_AWS_RS_USER, password=E_AWS_RS_PASS)
+        conn = psycopg2.connect(dbname=DATABASE_NAME, host=CLUSTER_ENDPOINT, port=REDSHIFT_PORT,
+                                user=E_AWS_RS_USER, password=E_AWS_RS_PASS)
         cur = conn.cursor()
         # Generating the SQL transaction to copy the uploaded file to Redshift
         # Update the lastIssueChange timestamp into team_project
         transactionQuery = "BEGIN TRANSACTION;" \
-                           "COPY issue_change from 's3://"+BUCKET+"/"+fileName+ \
-                            "' credentials 'aws_iam_role=arn:aws:iam::"+jira_etl_constants.AWS_ACCOUNT_NUMBER+":role/vger-python-lambda" + \
-                            "' dateformat 'auto' timeformat 'auto' csv;" \
-                            "UPDATE team_project SET last_issue_change='{}' WHERE id={};" \
-                            "END TRANSACTION;".format(lastIssueChange, teamConfig.get('id'))
+                           "COPY issue_change from 's3://" + BUCKET + "/" + fileName + \
+                           "' credentials 'aws_iam_role=arn:aws:iam::" + jira_etl_constants.AWS_ACCOUNT_NUMBER + ":role/vger-python-lambda" + \
+                           "' dateformat 'auto' timeformat 'auto' csv;" \
+                           "UPDATE team_project SET last_issue_change='{}' WHERE id={};" \
+                           "END TRANSACTION;".format(lastIssueChange, teamConfig.get('id'))
         cur.execute(transactionQuery)
         conn.commit()
         # Delete the file after uploading
         b.delete_key(fileName)
-        print (fileName + " loaded")
+        print(fileName + " loaded")
 
         cur.close()
         conn.close()
-        
+
     else:
         # If the file size is 0
-        print ("No data extracted. Nothing was loaded to Redshift")
+        print("No data extracted. Nothing was loaded to Redshift")

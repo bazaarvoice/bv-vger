@@ -1,4 +1,5 @@
 from __future__ import print_function
+import boto3
 import os
 import psycopg2
 from psycopg2.extras import execute_values
@@ -6,12 +7,16 @@ from psycopg2.extras import execute_values
 
 class RedshiftConnection(object):
     def __init__(self):
+        ENV = os.environ['ENV']
+        ssm_base = os.environ["VGER_SSM_BASE"]
+        ssm_client = boto3.client('ssm')
+
         # Defining environment variables for accessing private information
-        self.E_AWS_RS_USER = os.environ['AWS_RS_USER']
-        self.E_AWS_RS_PASS = os.environ['AWS_RS_PASS']
-        self.DATABASE_NAME = os.environ['DATABASE_NAME']
-        self.REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
-        self.CLUSTER_ENDPOINT = os.environ['CLUSTER_ENDPOINT']
+        self.E_AWS_RS_USER = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+        self.E_AWS_RS_PASS = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+        self.DATABASE_NAME = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV))
+        self.REDSHIFT_PORT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV))
+        self.CLUSTER_ENDPOINT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV))
 
         # Connect to the Vger Redshift DB
         self.conn = psycopg2.connect(dbname=self.DATABASE_NAME, host=self.CLUSTER_ENDPOINT, port=self.REDSHIFT_PORT,
@@ -82,7 +87,8 @@ class RedshiftConnection(object):
         self.cur.execute(insertTeam, (team,))
         self.conn.commit()
 
-    def insertTeamProject(self, teamProject, teamId, jiraBoardName, jiraBoardID, jiraIssueFilter, defaultLeadTimeStartState,
+    def insertTeamProject(self, teamProject, teamId, jiraBoardName, jiraBoardID, jiraIssueFilter,
+                          defaultLeadTimeStartState,
                           defaultLeadTimeEndState, rollingTimeWindowDays, includeSubtasks, excludedIssueTypesStr):
         insertTeamProject = """
         INSERT INTO team_project ( name,
@@ -163,7 +169,8 @@ class RedshiftConnection(object):
             insertIssueTypeList = [issueType for issueType in allIssueTypes if
                                    issueType not in existsTypesList and issueType not in excludedTypesList]
             if allIssueTypes and set(existsTypesList).issubset(set(removeTypesList)) and not insertIssueTypeList:
-                raise ValueError("You have excluded all issue types allowed for this project. Please include at least one issue type.")
+                raise ValueError(
+                    "You have excluded all issue types allowed for this project. Please include at least one issue type.")
 
             updateIssues = """
             UPDATE team_project
@@ -362,7 +369,6 @@ class RedshiftConnection(object):
             self.closeConnection()
             raise e
         return result
-
 
     def get_merged_pull_requests_timestamp(self, project_id, repo_names, date_since, date_until):
         pull_requests_lead_time_query = """

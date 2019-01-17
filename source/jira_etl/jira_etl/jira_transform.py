@@ -1,4 +1,5 @@
 from __future__ import print_function
+import boto3
 import os
 
 # These packages are needed in the ZIP file uploaded into Lambda
@@ -7,10 +8,13 @@ import pandas as pd
 import jira_etl_lib
 
 def find_issues(initialLoad=True, startAt=0, batchSize=1000, getTotal=False, timestampSince=0, teamConfig={}):
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
 
-    E_JH_USER = os.environ["JH_USER"]
-    E_JH_PASS = os.environ["JH_PASS"]
-    E_JH_JIRAURL = os.environ["JH_JIRAURL"]
+    E_JH_USER = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    E_JH_PASS = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+    E_JH_JIRAURL = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/host_url'.format(ssm_base=ssm_base, env=ENV))
 
     #  JIRA client connection and session
     connection = {}

@@ -1,4 +1,5 @@
 from __future__ import print_function
+import boto3
 import os
 import psycopg2
 import math
@@ -70,12 +71,16 @@ def handler(event, context):
         rollingWeeks.append(startDate)
 
     # Init redshift connection
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
     connection_detail = {
-        'dbname': os.environ['DATABASE_NAME'],
-        'host': os.environ["CLUSTER_ENDPOINT"],
-        'port': os.environ['REDSHIFT_PORT'],
-        'user': os.environ['AWS_RS_USER'],
-        'password': os.environ['AWS_RS_PASS']
+        'dbname': ssm_client.get_parameter(Name='/{ssm_env}/redshift/{env}/database_name'.format(ssm_base=ssm_base, env=ENV)),
+        'host': ssm_client.get_parameter(Name='/{ssm_env}/redshift/{env}/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV)),
+        'port': ssm_client.get_parameter(Name='/{ssm_env}/redshift/{env}/port'.format(ssm_base=ssm_base, env=ENV)),
+        'user': ssm_client.get_parameter(Name='/{ssm_env}/redshift/{env}/username'.format(ssm_base=ssm_base, env=ENV)),
+        'password': ssm_client.get_parameter(Name='/{ssm_env}/redshift/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
     }
 
     conn = psycopg2.connect(**connection_detail)
@@ -125,7 +130,7 @@ def handler(event, context):
         week = datetime.datetime.fromtimestamp(rollingWeeks[index + rollingWindowWeeks], tz=pytz.utc).isoformat()
         rolling_intervals[week] = {
             "rolling_interval_start": rollingWeeks[index],
-            "rolling_interval_end": rollingWeeks[index+rollingWindowWeeks],
+            "rolling_interval_end": rollingWeeks[index + rollingWindowWeeks],
             "leadtime": {
                 "Overall": []
             }
@@ -192,7 +197,7 @@ def handler(event, context):
     # still need to filter out issues that were closed before or after dateSince/DataUntil
     counter = 0
     issuesToDelete = []
-    #since poping shifts the indices, each time something needs to be poped, must be subtracted by number of pops needing to be done
+    # since poping shifts the indices, each time something needs to be poped, must be subtracted by number of pops needing to be done
     numOfPops = 0
 
     for issue in issues:
@@ -216,9 +221,10 @@ def handler(event, context):
                 issue["end_state_time"] = state_transition_time
                 break
 
-        #if issue was completed before or after the set amount of time passed into leadtime script, remove it from issues
-        if ("end_state_time" in issue) and (issue["end_state_time"] < int(dateSince) or issue["end_state_time"] > int(dateUntil)) and isIssueDeleted == False:
-            issuesToDelete.append(counter-numOfPops)
+        # if issue was completed before or after the set amount of time passed into leadtime script, remove it from issues
+        if ("end_state_time" in issue) and (issue["end_state_time"] < int(dateSince) or issue["end_state_time"] > int(
+                dateUntil)) and isIssueDeleted == False:
+            issuesToDelete.append(counter - numOfPops)
             numOfPops = numOfPops + 1
             isIssueDeleted = True
 
@@ -226,23 +232,23 @@ def handler(event, context):
         if issue.get("start_state_time") and issue.get("end_state_time"):
             start_time = datetime.datetime.fromtimestamp(issue["start_state_time"])
             end_time = datetime.datetime.fromtimestamp(issue["end_state_time"])
-            issue_working_days = TimeIntervalCalculator.workday_diff(start_time, end_time)             
+            issue_working_days = TimeIntervalCalculator.workday_diff(start_time, end_time)
             issue["leadtime"]["Overall"] = float("{0:.2f}".format(issue_working_days))
         # if needed parameters don't exist, remove from loop
         elif isIssueDeleted == False:
-            issuesToDelete.append(counter-numOfPops)
+            issuesToDelete.append(counter - numOfPops)
             numOfPops = numOfPops + 1
-            isIssueDeleted = True            
+            isIssueDeleted = True
 
-        #remove issue if it is less than 15 minutes (0.01) to prevent issues from being displayed on chart as 0
+            # remove issue if it is less than 15 minutes (0.01) to prevent issues from being displayed on chart as 0
         if ("Overall" in issue["leadtime"]) and issue["leadtime"]["Overall"] < 0.01 and isIssueDeleted == False:
-            issuesToDelete.append(counter-numOfPops)
+            issuesToDelete.append(counter - numOfPops)
             numOfPops = numOfPops + 1
             isIssueDeleted = True
 
         counter = counter + 1
 
-    #issues = [issue for issue in issues if issue["leadtime"].get("Overall")]
+    # issues = [issue for issue in issues if issue["leadtime"].get("Overall")]
 
     # Filter out if the issue did not have finish during the time period
     for num in issuesToDelete:

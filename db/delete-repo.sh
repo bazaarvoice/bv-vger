@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 usage()
 {
-    echo Usage: `basename $0` "[-q] [-n] deployEnv repoName..." >&2
+    echo Usage: `basename $0` "[-q] [-n] <deployEnv> <repoName...>" >&2
     echo "" >&2
     echo "Deletes data for the given GitHub repos from the given deployment environment." >&2
     echo "Repo data is deleted ONLY for a repo that is no longer referenced by any team project." >&2
@@ -29,7 +29,7 @@ fi
 env=$1; shift
 case ${env} in
    prod|qa) ;;
-      *) echo "Unknown deployment environment: $env" >&2; exit 1;;   
+      *) echo "Unknown deployment environment: $env" >&2; exit 1;;
 esac
 
 repos=$*
@@ -39,7 +39,7 @@ binDir=$(dirname $0)
 eval $(${binDir}/pg-cli.sh ${env})
 
 for repo in ${repos}; do
-    projects=$(${binDir}/pg-exec.sh <<<"select p.name from team_repo r left join team_project p on r.team_project_id=p.id where r.repo_name='${repo}';") || exit 1
+    projects=$(${binDir}/pg-exec.sh ${env} <<<"select p.name from team_repo r left join team_project p on r.team_project_id=p.id where r.repo_name='${repo}';") || exit 1
 
     if [[ -z "${projects}" ]] ; then
         echo "Repo=${repo} not found" >&2
@@ -47,7 +47,7 @@ for repo in ${repos}; do
         
     elif [[ "${projects}" = "null" ]] ; then
         echo "Deleting ${repo}..." >&2
-        test "$info" || ${binDir}/pg-exec.sh <<EOF
+        test "$info" || ${binDir}/pg-exec.sh ${env} <<EOF
 delete from team_repo where repo_name = '${repo}';
 delete from git_watermarks where repo_name = '${repo}';
 delete from tags where repo = '${repo}';

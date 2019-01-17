@@ -1,40 +1,47 @@
 from __future__ import print_function
+import boto3
 import os
 import json
 import datetime
 import urllib
 import psycopg2
 
+
 def next_weekday(d, weekday):
     days_ahead = weekday - d.weekday()
-    if days_ahead < 0: # Target day already happened this week
+    if days_ahead < 0:  # Target day already happened this week
         days_ahead += 7
     returnDate = d + datetime.timedelta(days=days_ahead)
     return returnDate
+
 
 def handler(event, context):
     # Grab the data passed to the lambda function through the browser URL (API Gateway)
     try:
         projectID = (event.get('pathParameters').get('id'))
     except Exception as e:
-        print (e)
+        print(e)
         payload = {"message": "Id path parameter not given"}
-        response={
+        response = {
             "statusCode": 400,
             "headers": {
-                "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-                "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+                "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+                "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
             },
             "body": json.dumps(payload)
         }
         return response
 
     # Defining environment variables for accessing private information
-    E_AWS_RS_USER = os.environ['AWS_RS_USER']
-    E_AWS_RS_PASS = os.environ['AWS_RS_PASS']
-    DATABASE_NAME = os.environ['DATABASE_NAME']
-    REDSHIFT_PORT = os.environ['REDSHIFT_PORT']
-    CLUSTER_ENDPOINT = os.environ['CLUSTER_ENDPOINT']
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
+    E_AWS_RS_USER = ssm_client.get_parameter(Name='/{ssm_base}/redshift/env/username'.format(ssm_base=ssm_base, env=ENV))
+    E_AWS_RS_PASS = ssm_client.get_parameter(Name='/{ssm_base}/redshift/env/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+    DATABASE_NAME = ssm_client.get_parameter(Name='/{ssm_base}/redshift/env/database_name'.format(ssm_base=ssm_base, env=ENV))
+    REDSHIFT_PORT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/env/port'.format(ssm_base=ssm_base, env=ENV))
+    CLUSTER_ENDPOINT = ssm_client.get_parameter(Name='/{ssm_base}/redshift/env/cluster_endpoint'.format(ssm_base=ssm_base, env=ENV))
 
     # Connect to the Vger Redshift DB
     conn = psycopg2.connect(dbname=DATABASE_NAME, host=CLUSTER_ENDPOINT, port=REDSHIFT_PORT,
@@ -51,11 +58,11 @@ def handler(event, context):
         cur.close()
         conn.close()
         payload = {"message": "Internal Error"}
-        response={
+        response = {
             "statusCode": 500,
             "headers": {
-                "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-                "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+                "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+                "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
             },
             "body": json.dumps(payload)
         }
@@ -64,11 +71,11 @@ def handler(event, context):
     if not repoResults:
         cur.close()
         conn.close()
-        response={
+        response = {
             "statusCode": 200,
             "headers": {
-                "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-                "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+                "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+                "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
             },
             "body": json.dumps(repoResults)
         }
@@ -97,32 +104,33 @@ def handler(event, context):
         # Try to decode the given date parameters, if undecodable throw exception
         if (dateUntil != None):
             decodedDate = urllib.unquote(dateUntil).decode('utf8')
-            decodedDate = datetime.datetime.strptime(decodedDate,'%Y-%m-%d')
+            decodedDate = datetime.datetime.strptime(decodedDate, '%Y-%m-%d')
             dateUntil = decodedDate
         if (dateSince != None):
             decodedDate = urllib.unquote(dateSince).decode('utf8')
-            decodedDate = datetime.datetime.strptime(decodedDate,'%Y-%m-%d')
+            decodedDate = datetime.datetime.strptime(decodedDate, '%Y-%m-%d')
             dateSince = decodedDate
     except:
         cur.close()
         conn.close()
-        payload = {"message": "Could not decode date(s). Ensure the given dates are URL encoded (ex YYYY-MM-DD encodes to YYYY-MM-DD). Given:"}
+        payload = {
+            "message": "Could not decode date(s). Ensure the given dates are URL encoded (ex YYYY-MM-DD encodes to YYYY-MM-DD). Given:"}
         if (dateUntil != None):
             payload["message"] += " dateUntil:{}".format(dateUntil)
         if (dateSince != None):
             payload["message"] += " dateSince:{}".format(dateSince)
-        response={
+        response = {
             "statusCode": 400,
             "headers": {
-                "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-                "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+                "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+                "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
             },
             "body": json.dumps(payload)
         }
         return response
 
     today = datetime.datetime.today()
-    if ( not (dateUntil != None and dateSince != None)) :
+    if (not (dateUntil != None and dateSince != None)):
         if (dateUntil != None):
             # If dateUntil specified later than today
             if (dateUntil > today):
@@ -143,19 +151,18 @@ def handler(event, context):
             cur.close()
             conn.close()
             payload = {"message": "Given dateSince which is later than dateUntil"}
-            response={
+            response = {
                 "statusCode": 400,
                 "headers": {
-                    "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-                    "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+                    "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+                    "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
                 },
                 "body": json.dumps(payload)
             }
             return response
 
-
     # Adjust dateSince to earliest Monday within the specified time interval
-    dateSince = next_weekday(dateSince,0)
+    dateSince = next_weekday(dateSince, 0)
     # Adjust dateSince one week earlier as also need to count number of issues for week after specified dateSince
     dateSince = dateSince - datetime.timedelta(weeks=1)
 
@@ -187,11 +194,11 @@ def handler(event, context):
             cur.close()
             conn.close()
             payload = {"message": "Internal Error"}
-            response={
+            response = {
                 "statusCode": 500,
                 "headers": {
-                    "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-                    "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+                    "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+                    "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
                 },
                 "body": json.dumps(payload)
             }
@@ -199,15 +206,13 @@ def handler(event, context):
 
         payload[repo[0]] = []
         for tag in tagResults:
-            payload[repo[0]].append([str(tag[0]),tag[1]])
+            payload[repo[0]].append([str(tag[0]), tag[1]])
 
-
-
-    response={
+    response = {
         "statusCode": 200,
         "headers": {
-            "Access-Control-Allow-Origin" : "*", # Required for CORS support to work
-            "Access-Control-Allow-Credentials" : True # Required for cookies, authorization headers with HTTPS
+            "Access-Control-Allow-Origin": "*",  # Required for CORS support to work
+            "Access-Control-Allow-Credentials": True  # Required for cookies, authorization headers with HTTPS
         },
         "body": json.dumps(payload)
     }

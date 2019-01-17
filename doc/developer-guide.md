@@ -89,6 +89,7 @@ We are using SSM Parameter store for some configuration details. These details a
     - General: `psycopg2, requests`
     - Time calculation related: `pytz, iso8601, intervaltree`
     - AWS SDK `boto3`
+    - AWS Mocking (for tests) `moto`
     - Scientific calculation: `pandas` for JIRA ETL and `numpy` for throughput predictability 
     - JIRA Library `jira`
     - Miscellaneous: `pyYAML, filechunkio` for JIRA ETL
@@ -271,6 +272,10 @@ The `git` database is our production database, which needs to be renamed to some
 Compared to PostgresSQL, Redshift __does not__ have any key restriction (no primary key) and __does not__ support `UPSERT`.
 
 <a name="backend-unit-test"/>
+### Test Setup
+As some configuration parameters are currently stored using Amazon SSM Parameter store, and Environment variable is leveraged to depict the parameter base of your choice
+
+`VGER_SSM_BASE=<your_parameter_prefix>`
 
 ### How to run lambda unit tests 
 [TODO] make unit tests!

@@ -1,3 +1,4 @@
+import boto3
 import os
 import json
 import requests
@@ -69,9 +70,13 @@ def handler(event, context):
         payload = {'message': 'Internal error'}
         return response_formatter(status_code='500', body=payload)
 
-    JH_USER = os.environ['JH_USER']
-    JH_PASS = os.environ['JH_PASS']
-    JH_JIRAURL = os.environ['JH_JIRAURL']
+    ENV = os.environ['ENV']
+    ssm_base = os.environ["VGER_SSM_BASE"]
+    ssm_client = boto3.client('ssm')
+
+    JH_USER = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/username'.format(ssm_base=ssm_base, env=ENV))
+    JH_PASS = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/password'.format(ssm_base=ssm_base, env=ENV), WithDecryption=True)
+    JH_JIRAURL = ssm_client.get_parameter(Name='/{ssm_base}/jira/{env}/host_url'.format(ssm_base=ssm_base, env=ENV))
     # connect to jira api and retrieve board configuration
     try:
         JIRA_BOARD_CONFIG_API = web_api_constants.CONFIG_URL.format(JH_JIRAURL, board_id)
